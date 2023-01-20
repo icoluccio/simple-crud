@@ -6,28 +6,46 @@ module SimpleCrudController
   # Possible options:
   ### authorize: use pundit to automatically check for authorization
   ### paginate: use wor-paginate to paginate the list
+  ### authenticate: use devise to authenticate
   ### serializer: use a particular serializer (both each_serializer and serializer)
-  def simple_crud_for(method, parameters = { authorize: true, paginate: true, serializer: nil })
+  def simple_crud_for(method, parameters = {})
+    parameters = set_parameters(parameters)
     klass = simple_crud_controller_model
     check_valid_method(method)
     check_policies(parameters)
     check_serializer(parameters)
     define_method(method, send("crud_lambda_for_#{method}", klass, parameters))
+    write_metadata(method, parameters)
+  end
+
+  def set_parameters(parameters)
+    defaults = { authorize: true, paginate: true, authenticate: true, serializer: nil }
+    defaults.each do |key, value|
+      parameters[key] = value unless parameters.key?(key)
+    end
+    parameters
+  end
+
+  def write_metadata(method, parameters)
+    @simple_crud_metadata ||= {}
+    @simple_crud_metadata[method] = parameters
   end
 
   def crud_lambda_for_show(klass, parameters = {})
     lambda do
+      authenticate_user! if parameters[:authenticate]
       requested = klass.find(params[:id])
 
       options = {}.merge(serializer: parameters[:serializer]).compact
-      authorize requested if parameters[:authorize]
+      authorize requested if parameters[:authorize] && parameters[:authenticate]
       render({ json: requested }.merge(options))
     end
   end
 
   def crud_lambda_for_index(klass, parameters = {})
     lambda do
-      authorize klass.new if parameters[:authorize]
+      authenticate_user! if parameters[:authenticate]
+      authorize klass.new if parameters[:authorize] && parameters[:authenticate]
       paginate = parameters[:paginate]
       serializer = parameters[:serializer]
       options = {}.merge(each_serializer: serializer).compact
@@ -36,18 +54,20 @@ module SimpleCrudController
     end
   end
 
-  def crud_lambda_for_create(klass, _parameters = {})
+  def crud_lambda_for_create(klass, parameters = {})
     lambda do
+      authenticate_user! if parameters[:authenticate]
       permitted_params = send("#{self.class.simple_crud_controller_model.to_s.underscore}_params")
-      authorize klass.new(permitted_params)
+      authorize klass.new(permitted_params) if parameters[:authorize] && parameters[:authenticate]
       render json: klass.create!(permitted_params), status: :created
     end
   end
 
   def crud_lambda_for_update(klass, parameters = {})
     lambda do
+      authenticate_user! if parameters[:authenticate]
       requested = klass.find(params[:id])
-      authorize requested if parameters[:authorize]
+      authorize requested if parameters[:authorize] && parameters[:authenticate]
       permitted_params = send("#{self.class.simple_crud_controller_model.to_s.underscore}_params")
       render json: requested.update!(permitted_params)
     end
@@ -55,8 +75,9 @@ module SimpleCrudController
 
   def crud_lambda_for_destroy(klass, parameters = {})
     lambda do
+      authenticate_user! if parameters[:authenticate]
       requested = klass.find(params[:id])
-      authorize requested if parameters[:authorize]
+      authorize requested if  parameters[:authorize] && parameters[:authenticate]
       render json: klass.find(params[:id]).destroy
     end
   end
