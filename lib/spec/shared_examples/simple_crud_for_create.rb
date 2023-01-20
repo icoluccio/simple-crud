@@ -1,27 +1,26 @@
+require_relative 'helpers.rb'
+
 shared_examples 'simple crud for create' do
   describe 'POST #create' do
-    let(:model_class) do
-      described_class.to_s.split('::')
-                     .last.sub('Controller', '').singularize.underscore
-    end
-    let(:model_class_object) do
-      model_class.classify.constantize
-    end
-    let(:model) do
-      create(model_class)
-    end
-
     context 'without authenticated user' do
       subject!(:req) { post :create, params: attributes_for(model_class) }
 
-      include_examples 'unauthorized when not logged in'
+      include_examples 'unauthorized when not logged in' if check_authenticate(:create)
+    end
+
+    if check_authorize(:destroy)
+      context 'when not authorized' do
+        subject!(:req) { post :create, params: model_params }
+
+        it 'fails with forbidden' do
+          make_policies_fail(:create)
+          expect(response).to have_http_status(:forbidden)
+        end
+      end
     end
 
     context 'when successfully creating an article' do
-      include_context 'with authenticated user'
-      let(:model_params) do
-        attributes_for(model_class)
-      end
+      include_context 'with authenticated user' if check_authenticate(:create)
 
       before do
         post :create, params: model_params
