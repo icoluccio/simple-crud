@@ -1,6 +1,7 @@
 ## Change log
 
 ### V0.2
+* Rename the published gem from `simple_crud` to `simple-crud`. That name is already taken on RubyGems by an unrelated gem; `simple-crud` is not. Install with `gem 'simple-crud', require: 'simple_crud'` (the require path is unchanged).
 * Drop the last Wolox references now that this gem lives at icoluccio/simple-crud, and point the wor-paginate link and CI/gem badges at their new homes.
 * Support Rails 6.1 through 8.1 (previously untested past very old Rails/Ruby versions): add an Appraisal-based test matrix, replace Travis CI with GitHub Actions, and drop the abandoned `devise_jwt_controllers` and `fictium` dependencies, which capped Rails compatibility at old versions.
 * Fix several bugs found while getting the CRUD shared examples to 100% coverage (authorization checks that never actually ran, mismatched test fixtures, a dead `SimpleCrud.configure` that always raised).

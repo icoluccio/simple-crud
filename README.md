@@ -32,10 +32,10 @@ simple_crud_for :index
 It includes support for index, create, destroy, update and show, and options to specify whether it should apply pagination, authorization and if a particular serializer should be used. Keep in mind, though, that the idea is not to replace writing methods in controllers altogether, but only to replace most standard cases.
 
 ## Installation
-Add the following line to your application's Gemfile:
+Add the following line to your application's Gemfile. The gem is named `simple-crud`, but the require path is `simple_crud`, so tell Bundler where to find it:
 
 ```ruby
-gem 'simple_crud'
+gem 'simple-crud', require: 'simple_crud'
 ```
 
 And then execute:
@@ -45,7 +45,7 @@ $ bundle
 
 Or install it yourself as:
 ```bash
-$ gem install simple_crud
+$ gem install simple-crud
 ```
 
 simple_crud only depends on Rails itself. Authorization (Pundit by default) and pagination (wor-paginate by default) are opt-in: add whichever libraries you actually use to your own Gemfile too.
