@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require 'active_support/all'
+require 'pundit'
+require 'wor/paginate'
 
 # Mixed into a Rails controller via `extend` to generate standard CRUD
 # actions (index/show/create/update/destroy) from a single declarative call.
