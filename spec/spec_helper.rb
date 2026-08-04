@@ -8,6 +8,7 @@ SimpleCov.start do
 end
 
 require File.expand_path('../spec/dummy/config/environment.rb', __dir__)
+require 'simple_crud'
 require 'rspec/rails'
 require 'pundit/rspec'
 require 'wor/paginate/rspec'
