@@ -7,12 +7,9 @@ require_relative 'adapter'
 module SimpleCrud
   module Pagination
     # Adapter for will_paginate (https://github.com/mislav/will_paginate).
-    # Reads :page/:per_page from the request params and renders a plain
-    # array (no wrapping envelope, unlike wor-paginate's {page:, count:, ...}).
-    #
-    # Uses #paginate rather than will_paginate's own #page, since Kaminari
-    # also defines #page and the two would clobber each other if an app
-    # loaded both gems.
+    # Renders a plain array, unlike wor-paginate's {page:, count:, ...}
+    # envelope. Uses #paginate rather than #page, since Kaminari also
+    # defines #page and the two would clobber each other if both are loaded.
     class WillPaginateAdapter
       include Adapter
 

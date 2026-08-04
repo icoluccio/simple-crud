@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-# Ruby 3.4+ no longer auto-loads logger by default; older Rails versions
-# reference Logger::Severity without requiring it themselves.
+# Ruby 3.4+ no longer auto-loads logger, which older Rails versions assume.
 require 'logger'
 
 # Set up gems listed in the Gemfile.

@@ -48,7 +48,7 @@ Or install it yourself as:
 $ gem install simple_crud
 ```
 
-simple_crud only depends on Rails itself. Authorization (Pundit by default) and pagination (wor-paginate by default) are opt-in — add whichever libraries you actually use to your own Gemfile too:
+simple_crud only depends on Rails itself. Authorization (Pundit by default) and pagination (wor-paginate by default) are opt-in: add whichever libraries you actually use to your own Gemfile too.
 
 ```ruby
 gem 'pundit'
@@ -107,9 +107,9 @@ You'll need a few things so they work correctly:
 
 ### Options
 #### Paginate
-By default, pagination is done using [wor-paginate](https://github.com/icoluccio/wor-paginate) — no options are needed, but read its documentation in case you need to customize the output.
+By default, pagination is done using [wor-paginate](https://github.com/icoluccio/wor-paginate). No options are needed, but read its documentation in case you need to customize the output.
 
-Three more pagination adapters ship with the gem — require the one you want and configure it (none of the four, including wor-paginate, is a dependency of simple_crud itself; add whichever library you use to your own Gemfile):
+Three more pagination adapters ship with the gem: require the one you want and configure it (none of the four, including wor-paginate, is a dependency of simple_crud itself; add whichever library you use to your own Gemfile).
 
 ```ruby
 # Kaminari (https://github.com/kaminari/kaminari)
@@ -161,7 +161,7 @@ end
 
 ```
 
-If you'd rather use a different authorization library, two more adapters ship with the gem — require the one you want and configure it:
+If you'd rather use a different authorization library, two more adapters ship with the gem: require the one you want and configure it.
 
 ```ruby
 # CanCanCan (https://github.com/CanCanCommunity/cancancan)
@@ -179,7 +179,7 @@ SimpleCrud.configure do |config|
 end
 ```
 
-Neither `cancancan` nor `action_policy` is a dependency of simple_crud itself — add whichever one you use to your own Gemfile.
+Neither `cancancan` nor `action_policy` is a dependency of simple_crud itself. Add whichever one you use to your own Gemfile.
 
 For anything else (or no authorization at all), implement `SimpleCrud::Authorization::Adapter` yourself:
 
@@ -242,7 +242,7 @@ It's not needed to specify paginate: true and such, since the shared examples wi
 5. Commit your changes (`git commit -am 'Add some feature'`)
 6. Run RuboCop lint (`bundle exec rubocop lib spec --format simple`)
 7. Run rspec tests (`BUNDLE_GEMFILE=gemfiles/rails_8.1.gemfile bundle exec rspec`)
-8. Push your branch (`git push origin my-new-feature`) — the pre-push hook re-verifies both automatically
+8. Push your branch (`git push origin my-new-feature`); the pre-push hook re-verifies both automatically
 9. Create a new Pull Request to `main` branch
 
 ## Releases

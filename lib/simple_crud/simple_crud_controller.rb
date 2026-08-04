@@ -9,8 +9,8 @@ module SimpleCrudController
   cattr_accessor :params, :permitted
 
   # Possible options:
-  ### authorize: use pundit to automatically check for authorization
-  ### paginate: use wor-paginate to paginate the list
+  ### authorize: check authorization via Config.authorization_adapter (Pundit by default)
+  ### paginate: paginate the list via Config.pagination_adapter (wor-paginate by default)
   ### authenticate: use devise to authenticate
   ### serializer: use a particular serializer (both each_serializer and serializer)
   def simple_crud_for(method, parameters = {})

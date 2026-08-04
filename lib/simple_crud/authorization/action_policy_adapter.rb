@@ -6,11 +6,8 @@ require_relative 'adapter'
 module SimpleCrud
   module Authorization
     # Adapter for Action Policy (https://github.com/palkan/action_policy).
-    # Assumes the consuming controller includes ActionPolicy::Controller
-    # (not the bare ActionPolicy::Behaviour) -- that's what makes the rule
-    # passed to #authorize! default to the current action name, matching
-    # how Pundit's own #authorize infers it. Policies follow the same
-    # "#{Model}Policy" naming convention as Pundit.
+    # Assumes the controller includes ActionPolicy::Controller (not the bare
+    # Behaviour), which defaults the rule to the current action name.
     class ActionPolicyAdapter
       include Adapter
 

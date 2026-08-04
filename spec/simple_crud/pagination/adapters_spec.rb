@@ -11,8 +11,8 @@ describe 'pagination adapters', type: :request do
 
   before do
     create_list(:dummy_model, 15, user: user)
-    # Index authorization checks against a blank klass.new (no owner), so
-    # the real ownership-based DummyModelPolicy#index? can never pass here.
+    # Index authorizes against a blank klass.new (no owner), so the real
+    # ownership-based policy can never pass here.
     allow(DummyModelPolicy).to receive(:new).and_return(instance_double(DummyModelPolicy, index?: true))
   end
 

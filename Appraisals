@@ -5,14 +5,10 @@
 appraise 'rails-6.1' do
   gem 'rails', '~> 6.1.0'
 
-  # activesupport 6.1.x requires mutex_m without declaring it; Ruby 3.4+ no
-  # longer bundles it by default.
+  # activesupport 6.1.x uses mutex_m/benchmark/logger without declaring
+  # them; none is bundled by default on Ruby 3.4+/4.0+ anymore.
   gem 'mutex_m'
-
-  # Same issue for benchmark, removed by default in Ruby 4.0.
   gem 'benchmark'
-
-  # Same issue for logger, no longer auto-loaded by default since Ruby 3.4.
   gem 'logger'
 
   gem 'sqlite3', '~> 1.4'

@@ -6,9 +6,8 @@ require_relative 'adapter'
 
 module SimpleCrud
   module Pagination
-    # Adapter for Kaminari (https://github.com/kaminari/kaminari). Reads
-    # :page/:per_page from the request params and renders a plain array
-    # (no wrapping envelope, unlike wor-paginate's {page:, count:, ...}).
+    # Adapter for Kaminari (https://github.com/kaminari/kaminari). Renders a
+    # plain array, unlike wor-paginate's {page:, count:, ...} envelope.
     class KaminariAdapter
       include Adapter
 

@@ -2,11 +2,8 @@
 
 module SimpleCrud
   # Holds simple_crud's configurable pieces. Set via SimpleCrud.configure.
-  #
-  # The default adapters (Pundit for authorization, wor-paginate for
-  # pagination) are only required the first time they're actually needed,
-  # so an app that never uses authorize: true or paginate: true never
-  # needs either gem installed at all.
+  # Default adapters are only required on first access, so an app that
+  # never uses authorize: true / paginate: true needs neither gem installed.
   class Config
     class << self
       attr_writer :authorization_adapter, :pagination_adapter

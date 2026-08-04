@@ -5,9 +5,8 @@ require_relative 'adapter'
 
 module SimpleCrud
   module Pagination
-    # Default pagination adapter. Assumes the consuming controller includes
-    # Wor::Paginate (https://github.com/icoluccio/wor-paginate), same as the
-    # README's documented ApplicationController setup.
+    # Default pagination adapter. Assumes the controller includes
+    # Wor::Paginate (https://github.com/icoluccio/wor-paginate).
     class WorPaginateAdapter
       include Adapter
 

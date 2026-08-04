@@ -6,8 +6,7 @@ AllCops:
   NewCops: disable
   SuggestExtensions: false
 
-# dummy_controller_spec.rb describes DummyModelsController but isn't named
-# after it, since it doubles as the shared-examples exercise spec.
+# dummy_controller_spec.rb doubles as the shared-examples exercise spec.
 RSpec/SpecFilePathFormat:
   Exclude:
     - spec/dummy_controller_spec.rb
