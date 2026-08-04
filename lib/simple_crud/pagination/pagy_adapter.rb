@@ -13,10 +13,13 @@ module SimpleCrud
       include Adapter
 
       def paginate(controller, klass, options)
-        # Pagy only honors a client-supplied `limit` param once max_limit is
+        # Pagy only honors a client-supplied `limit` param once a max is
         # set (a deliberate safety default); without it every page uses the
         # fixed default limit (20) regardless of what the client asks for.
-        _pagy, records = controller.send(:pagy, klass.all, max_limit: 100)
+        # The option was renamed client_max_limit -> max_limit in 43.5.0;
+        # pass both so this works across that split (43.4.x is still what
+        # Ruby < 3.3 resolves to, since 43.5.0+ requires Ruby >= 3.3).
+        _pagy, records = controller.send(:pagy, klass.all, max_limit: 100, client_max_limit: 100)
         controller.render({ json: records }.merge(options))
       end
     end
