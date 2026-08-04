@@ -55,7 +55,7 @@ gem 'pundit'
 gem 'wor-paginate'
 ```
 
-See [Authorize](#authorize) and [Paginate](#paginate) below for the other supported libraries, or to skip either feature (`authorize: false` / `paginate: false`) and depend on neither.
+See [Paginate](#paginate) and [Authorize](#authorize) below for the other supported libraries, or to skip either feature (`authorize: false` / `paginate: false`) and depend on neither.
 
 ## Usage
 ### Setup
@@ -98,8 +98,8 @@ Each method supports different options, as in:
 simple_crud_for :index, paginate: false, authorize: false, serializer: CustomSerializer
 ```
 
-- Paginate: whether it should paginate or not. `true` paginates using wor-paginate, `false` doesn't paginate
-- Authorize: whether it should use Pundit to automatically check if the action is permitted
+- Paginate: whether it should paginate or not. `true` paginates via the configured pagination adapter (wor-paginate by default), `false` doesn't paginate
+- Authorize: whether it should check authorization via the configured authorization adapter (Pundit by default)
 - Authenticate: whether it should use Devise to check for a current_user
 - Serializer: specify a particular serializer you should use
 
