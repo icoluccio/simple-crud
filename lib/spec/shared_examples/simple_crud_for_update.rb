@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 shared_examples 'simple crud for update' do
   describe 'PUT #update' do
     context 'without authenticated user' do
@@ -6,12 +8,16 @@ shared_examples 'simple crud for update' do
       include_examples 'unauthorized when not logged in'
     end
 
-    if check_authorize(:destroy)
+    if check_authorize(:update)
       context 'when not authorized' do
-        subject!(:req) { put :update, params: model_params.merge(id: model.id) }
+        include_context 'with authenticated user' if check_authenticate(:update)
+
+        before do
+          make_policies_fail(:update)
+          put :update, params: model_params.merge(id: model.id)
+        end
 
         it 'fails with forbidden' do
-          make_policies_fail(:update)
           expect(response).to have_http_status(:forbidden)
         end
       end

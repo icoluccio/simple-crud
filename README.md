@@ -1,9 +1,8 @@
 SimpleCrud
 =============
 
-[![Build Status](https://travis-ci.org/Wolox/simple-crud.svg?branch=master)](https://travis-ci.org/Wolox/simple-crud)
+[![CI](https://github.com/icoluccio/simple-crud/actions/workflows/ci.yml/badge.svg)](https://github.com/icoluccio/simple-crud/actions/workflows/ci.yml)
 [![Gem Version](https://badge.fury.io/rb/simple-crud.svg)](https://badge.fury.io/rb/simple-crud)
-[![Code Climate](https://codeclimate.com/github/Wolox/simple-crud/badges/gpa.svg)](https://codeclimate.com/github/Wolox/simple-crud)
 
 # Table of contents
   - [Description](#description)
@@ -49,12 +48,22 @@ Or install it yourself as:
 $ gem install simple_crud
 ```
 
+simple_crud only depends on Rails itself. Authorization (Pundit by default) and pagination (wor-paginate by default) are opt-in: add whichever libraries you actually use to your own Gemfile too.
+
+```ruby
+gem 'pundit'
+gem 'wor-paginate'
+```
+
+See [Authorize](#authorize) and [Paginate](#paginate) below for the other supported libraries, or to skip either feature (`authorize: false` / `paginate: false`) and depend on neither.
+
 ## Usage
 ### Setup
 #### Application controller
 Before SimpleCrud can be used, some boilerplate is needed. Add the following to your ApplicationController (or every controller in case you don't want it included in all controllers)
 ```ruby
-include Pundit
+include Pundit::Authorization
+include Wor::Paginate
 extend SimpleCrud
 
 before_action :set_params
@@ -63,6 +72,8 @@ def set_params
   SimpleCrudController.params = params
 end
 ```
+
+(Skip `include Pundit::Authorization` / `include Wor::Paginate` if you're using a different adapter, or `authorize: false` / `paginate: false` everywhere.)
 
 
 ### Each controller
@@ -96,10 +107,45 @@ You'll need a few things so they work correctly:
 
 ### Options
 #### Paginate
-No options are needed, but the pagination is done using [wor-paginate](https://github.com/Wolox/wor-paginate) so read the documentation in case you need to customize the output.
+Pagination defaults to [wor-paginate](https://github.com/icoluccio/wor-paginate) and needs no extra options. Check its docs if you want to customize the output.
+
+Three other pagination libraries have adapters built in too:
+
+```ruby
+# Kaminari (https://github.com/kaminari/kaminari)
+require 'simple_crud/pagination/kaminari_adapter'
+SimpleCrud.configure { |config| config.pagination_adapter = SimpleCrud::Pagination::KaminariAdapter.new }
+
+# will_paginate (https://github.com/mislav/will_paginate)
+require 'simple_crud/pagination/will_paginate_adapter'
+SimpleCrud.configure { |config| config.pagination_adapter = SimpleCrud::Pagination::WillPaginateAdapter.new }
+
+# Pagy (https://github.com/ddnexus/pagy) -- requires `include Pagy::Method` in your ApplicationController
+require 'simple_crud/pagination/pagy_adapter'
+SimpleCrud.configure { |config| config.pagination_adapter = SimpleCrud::Pagination::PagyAdapter.new }
+```
+
+They render a plain JSON array rather than wor-paginate's `{page:, count:, total_pages:, ...}` envelope. None of the four pagination gems is installed automatically, so add whichever one you pick to your own Gemfile.
+
+Want something else, or nothing at all? Write your own `SimpleCrud::Pagination::Adapter`:
+
+```ruby
+class MyPaginationAdapter
+  include SimpleCrud::Pagination::Adapter
+
+  # Called from inside the generated index action when paginate: true.
+  # Must render the response itself.
+  def paginate(controller, klass, options)
+    records = klass.some_pagination_method(controller.params[:page])
+    controller.render({ json: records }.merge(options))
+  end
+end
+
+SimpleCrud.configure { |config| config.pagination_adapter = MyPaginationAdapter.new }
+```
 
 #### Authorize
-The name of the policy should be the model followed by Policy, as in `AuthorPolicy`. Support for custom policies is upcoming. The policy should be a standard Pundit policy, for example:
+Authorization checks go through [Pundit](https://github.com/varvet/pundit) by default. Name the policy after the model plus `Policy`, e.g. `AuthorPolicy`, written as a regular Pundit policy:
 
 ```ruby
 class AuthorPolicy
@@ -115,6 +161,50 @@ class AuthorPolicy
   end
 end
 
+```
+
+Prefer CanCanCan or Action Policy instead? Both have adapters ready to go:
+
+```ruby
+# CanCanCan (https://github.com/CanCanCommunity/cancancan)
+require 'simple_crud/authorization/can_can_can_adapter'
+SimpleCrud.configure do |config|
+  config.authorization_adapter = SimpleCrud::Authorization::CanCanCanAdapter.new
+end
+```
+
+```ruby
+# Action Policy (https://github.com/palkan/action_policy)
+require 'simple_crud/authorization/action_policy_adapter'
+SimpleCrud.configure do |config|
+  config.authorization_adapter = SimpleCrud::Authorization::ActionPolicyAdapter.new
+end
+```
+
+As with pagination, simple_crud ships the adapter code but not the library itself. Add `cancancan` or `action_policy` to your own Gemfile, whichever you pick.
+
+Using something else, or skipping authorization entirely? Write your own `SimpleCrud::Authorization::Adapter`:
+
+```ruby
+class MyAuthorizationAdapter
+  include SimpleCrud::Authorization::Adapter
+
+  # Called from inside a generated CRUD action. Raise (or otherwise halt
+  # the request) when the current user may not act on +record+.
+  def authorize(controller, record)
+    controller.authorize!(record)
+  end
+
+  # Called once, when simple_crud_for is invoked, to fail fast if the
+  # given model has no authorization rules defined at all.
+  def policy_defined?(model_class)
+    Kernel.const_defined?("#{model_class}Policy")
+  end
+end
+
+SimpleCrud.configure do |config|
+  config.authorization_adapter = MyAuthorizationAdapter.new
+end
 ```
 
 #### Authenticate
@@ -148,33 +238,34 @@ It's not needed to specify paginate: true and such, since the shared examples wi
 ## Contributing
 
 1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Run rubocop lint (`bundle exec rubocop -R --format simple`)
-5. Run rspec tests (`bundle exec rspec`)
-6. Push your branch (`git push origin my-new-feature`)
-7. Create a new Pull Request to `master` branch
+2. Run `bundle install && bundle exec appraisal generate` once, to install dependencies and generate the per-Rails-version gemfiles (`gemfiles/rails_*.gemfile`) used for testing
+3. Run `bundle exec overcommit --install` once, to enable the pre-push hook (runs RuboCop and the full spec suite automatically on every `git push`)
+4. Create your feature branch (`git checkout -b my-new-feature`)
+5. Commit your changes (`git commit -am 'Add some feature'`)
+6. Run RuboCop lint (`bundle exec rubocop lib spec --format simple`)
+7. Run rspec tests (`BUNDLE_GEMFILE=gemfiles/rails_8.1.gemfile bundle exec rspec`)
+8. Push your branch (`git push origin my-new-feature`). The pre-push hook re-verifies both automatically
+9. Create a new Pull Request to `main` branch
 
 ## Releases
-📢 [See what's changed in a recent version](https://github.com/Wolox/simple-crud/releases)
+📢 [See what's changed in a recent version](https://github.com/icoluccio/simple-crud/releases)
 
 ## About ##
 
-The current maintainers of this gem are :
+The current maintainer of this gem is:
 * [Ignacio Coluccio](https://github.com/icoluccio)
 
 This project was developed by:
 * [Ignacio Coluccio](https://github.com/icoluccio)
 
-At [Wolox](http://www.wolox.com.ar)
-
-[![Wolox](https://raw.githubusercontent.com/Wolox/press-kit/master/logos/logo_banner.png)](http://www.wolox.com.ar)
+Originally at Wolox
 
 ## License
 
-**simple-crud** is available under the MIT [license](https://raw.githubusercontent.com/Wolox/simple-crud/master/LICENSE.md).
+**simple-crud** is available under the MIT [license](https://raw.githubusercontent.com/icoluccio/simple-crud/main/LICENSE.md).
 
     Copyright (c) 2017 Wolox
+    Copyright (c) 2026 Ignacio Coluccio
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal

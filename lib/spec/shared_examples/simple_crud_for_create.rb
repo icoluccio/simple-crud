@@ -1,4 +1,6 @@
-require_relative 'helpers.rb'
+# frozen_string_literal: true
+
+require_relative 'helpers'
 
 shared_examples 'simple crud for create' do
   describe 'POST #create' do
@@ -8,12 +10,16 @@ shared_examples 'simple crud for create' do
       include_examples 'unauthorized when not logged in' if check_authenticate(:create)
     end
 
-    if check_authorize(:destroy)
+    if check_authorize(:create)
       context 'when not authorized' do
-        subject!(:req) { post :create, params: model_params }
+        include_context 'with authenticated user' if check_authenticate(:create)
+
+        before do
+          make_policies_fail(:create)
+          post :create, params: model_params
+        end
 
         it 'fails with forbidden' do
-          make_policies_fail(:create)
           expect(response).to have_http_status(:forbidden)
         end
       end
@@ -21,9 +27,10 @@ shared_examples 'simple crud for create' do
 
     context 'when successfully creating an article' do
       include_context 'with authenticated user' if check_authenticate(:create)
+      let(:create_params) { model_params.merge(user_id: current_user.id) }
 
       before do
-        post :create, params: model_params
+        post :create, params: create_params
       end
 
       it 'response with 200 status code' do
@@ -35,7 +42,7 @@ shared_examples 'simple crud for create' do
       end
 
       it 'creates an article with valid attributes' do
-        expect(model_class_object.last).to have_attributes(model_params)
+        expect(model_class_object.last).to have_attributes(create_params)
       end
     end
   end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class DummyModelPolicy
   attr_reader :user, :dummy_model
 

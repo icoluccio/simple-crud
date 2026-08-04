@@ -1,6 +1,19 @@
+# frozen_string_literal: true
+
+require 'pagy'
+
 class ApplicationController < ActionController::Base
+  # :unprocessable_entity was renamed :unprocessable_content in Rack 3.1.
+  # Older Rack (bundled with Rails 6.1/7.0) doesn't recognize the new name.
+  UNPROCESSABLE_STATUS = if Rack::Utils::SYMBOL_TO_STATUS_CODE.key?(:unprocessable_content)
+                           :unprocessable_content
+                         else
+                           :unprocessable_entity
+                         end
+
   protect_from_forgery with: :exception
   include Wor::Paginate
+  include Pagy::Method
   include ActionController::MimeResponds
   respond_to :json
   # i18n configuration. See: http://guides.rubyonrails.org/i18n.html
@@ -16,7 +29,7 @@ class ApplicationController < ActionController::Base
   end
 
   def unprocessable(exception)
-    render json: { errors: exception }, status: :unprocessable_entity
+    render json: { errors: exception }, status: UNPROCESSABLE_STATUS
   end
 
   def forbidden(exception)

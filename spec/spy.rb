@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #
 # Class used in tests to keep track of amount of calls for a method in a klass.
 #
@@ -14,7 +16,6 @@
 # end
 #
 class Spy
-
   # Defines a counter for the given method and overrides it to update
   # the counter in every call before being executed.
   def self.spy(klass, method)
@@ -37,5 +38,4 @@ class Spy
       end
     end
   end
-
 end

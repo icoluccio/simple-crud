@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: "Ruby ${{ matrix.ruby }} / Rails ${{ matrix.rails }}"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: ['3.2', '3.3', '3.4']
+        rails: ['6.1', '7.0', '7.1', '7.2', '8.0', '8.1']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: false
+      - name: Generate appraisal gemfiles
+        run: |
+          bundle install
+          bundle exec appraisal generate
+      - name: Install dependencies for this Rails version
+        env:
+          BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/rails_${{ matrix.rails }}.gemfile
+        run: bundle install
+      - name: Prepare test database
+        env:
+          BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/rails_${{ matrix.rails }}.gemfile
+          RAILS_ENV: test
+        working-directory: spec/dummy
+        run: bundle exec rails db:schema:load
+      - name: Run tests
+        env:
+          BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/rails_${{ matrix.rails }}.gemfile
+        run: bundle exec rspec
+
+  lint:
+    name: RuboCop
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+      - name: Run RuboCop
+        run: bundle exec rubocop lib spec --format simple

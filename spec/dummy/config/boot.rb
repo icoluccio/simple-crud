@@ -1,3 +1,8 @@
+# frozen_string_literal: true
+
+# Ruby 3.4+ no longer auto-loads logger, which older Rails versions assume.
+require 'logger'
+
 # Set up gems listed in the Gemfile.
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../../../Gemfile', __dir__)
 

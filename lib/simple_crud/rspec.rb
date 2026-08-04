@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../spec/response_helper'
 require_relative '../spec/shared_contexts/authenticate_user'
 require_relative '../spec/shared_examples/simple_crud_for_update'

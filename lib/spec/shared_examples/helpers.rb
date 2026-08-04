@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 def get_option(method, option)
   described_class.instance_variable_get(:@simple_crud_metadata)[method][option]
 end
@@ -18,7 +20,11 @@ def model_serializer
 end
 
 def model
-  create(model_class)
+  @model ||= create(model_class, **model_attributes)
+end
+
+def model_attributes
+  respond_to?(:current_user) ? { user: current_user } : {}
 end
 
 def model_class_object
@@ -30,13 +36,15 @@ def policy_class_object
 end
 
 def make_policies_fail(method)
-  allow_any_instance_of(policy_class_object).to receive("#{method}?").and_return(false)
+  allow(policy_class_object).to receive(:new)
+    .and_return(instance_double(policy_class_object, "#{method}?" => false))
 end
 
 def make_policies_succeed(method)
-  allow_any_instance_of(policy_class_object).to receive("#{method}?").and_return(true)
+  allow(policy_class_object).to receive(:new)
+    .and_return(instance_double(policy_class_object, "#{method}?" => true))
 end
 
 def model_params
-  attributes_for(model_class)
+  @model_params ||= attributes_for(model_class)
 end

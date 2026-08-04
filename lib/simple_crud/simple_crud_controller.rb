@@ -1,15 +1,19 @@
-require 'byebug'
+# frozen_string_literal: true
+
 require 'active_support/all'
+require_relative 'config'
+
+# Extended onto a controller for CRUD actions.
 module SimpleCrudController
   cattr_accessor :params, :permitted
 
   # Possible options:
-  ### authorize: use pundit to automatically check for authorization
-  ### paginate: use wor-paginate to paginate the list
+  ### authorize: check authorization via Config.authorization_adapter (Pundit by default)
+  ### paginate: paginate the list via Config.pagination_adapter (wor-paginate by default)
   ### authenticate: use devise to authenticate
   ### serializer: use a particular serializer (both each_serializer and serializer)
   def simple_crud_for(method, parameters = {})
-    parameters = set_parameters(parameters)
+    parameters = parameters_with_defaults(parameters)
     klass = simple_crud_controller_model
     check_valid_method(method)
     check_policies(parameters)
@@ -18,7 +22,7 @@ module SimpleCrudController
     write_metadata(method, parameters)
   end
 
-  def set_parameters(parameters)
+  def parameters_with_defaults(parameters)
     defaults = { authorize: true, paginate: true, authenticate: true, serializer: nil }
     defaults.each do |key, value|
       parameters[key] = value unless parameters.key?(key)
@@ -31,13 +35,19 @@ module SimpleCrudController
     @simple_crud_metadata[method] = parameters
   end
 
+  def self.maybe_authorize(controller, record, parameters)
+    return unless parameters[:authorize] && parameters[:authenticate]
+
+    SimpleCrud::Config.authorization_adapter.authorize(controller, record)
+  end
+
   def crud_lambda_for_show(klass, parameters = {})
     lambda do
       authenticate_user! if parameters[:authenticate]
       requested = klass.find(params[:id])
 
       options = {}.merge(serializer: parameters[:serializer]).compact
-      authorize requested if parameters[:authorize] && parameters[:authenticate]
+      SimpleCrudController.maybe_authorize(self, requested, parameters)
       render({ json: requested }.merge(options))
     end
   end
@@ -45,12 +55,17 @@ module SimpleCrudController
   def crud_lambda_for_index(klass, parameters = {})
     lambda do
       authenticate_user! if parameters[:authenticate]
-      authorize klass.new if parameters[:authorize] && parameters[:authenticate]
-      paginate = parameters[:paginate]
-      serializer = parameters[:serializer]
-      options = {}.merge(each_serializer: serializer).compact
+      SimpleCrudController.maybe_authorize(self, klass.new, parameters)
+      options = {}.merge(each_serializer: parameters[:serializer]).compact
+      SimpleCrudController.render_index(self, klass, options, parameters)
+    end
+  end
 
-      paginate ? (render_paginated klass, options) : render({ json: klass.all }.merge(options))
+  def self.render_index(controller, klass, options, parameters)
+    if parameters[:paginate]
+      SimpleCrud::Config.pagination_adapter.paginate(controller, klass, options)
+    else
+      controller.render({ json: klass.all }.merge(options))
     end
   end
 
@@ -58,7 +73,7 @@ module SimpleCrudController
     lambda do
       authenticate_user! if parameters[:authenticate]
       permitted_params = send("#{self.class.simple_crud_controller_model.to_s.underscore}_params")
-      authorize klass.new(permitted_params) if parameters[:authorize] && parameters[:authenticate]
+      SimpleCrudController.maybe_authorize(self, klass.new(permitted_params), parameters)
       render json: klass.create!(permitted_params), status: :created
     end
   end
@@ -67,7 +82,7 @@ module SimpleCrudController
     lambda do
       authenticate_user! if parameters[:authenticate]
       requested = klass.find(params[:id])
-      authorize requested if parameters[:authorize] && parameters[:authenticate]
+      SimpleCrudController.maybe_authorize(self, requested, parameters)
       permitted_params = send("#{self.class.simple_crud_controller_model.to_s.underscore}_params")
       render json: requested.update!(permitted_params)
     end
@@ -77,7 +92,7 @@ module SimpleCrudController
     lambda do
       authenticate_user! if parameters[:authenticate]
       requested = klass.find(params[:id])
-      authorize requested if  parameters[:authorize] && parameters[:authenticate]
+      SimpleCrudController.maybe_authorize(self, requested, parameters)
       render json: klass.find(params[:id]).destroy
     end
   end
@@ -93,10 +108,10 @@ module SimpleCrudController
   def check_policies(parameters)
     return if !parameters.key?(:authorize) || !parameters[:authorize]
 
-    policy_name = "#{simple_crud_controller_model}Policy"
-    return if Kernel.const_defined?(policy_name)
+    model = simple_crud_controller_model
+    return if SimpleCrud::Config.authorization_adapter.policy_defined?(model)
 
-    throw "create a valid policy with name #{policy_name}"
+    throw "no authorization policy configured for #{model}"
   end
 
   def check_serializer(parameters)
