@@ -7,7 +7,7 @@ require_relative 'adapter'
 module SimpleCrud
   module Pagination
     # Adapter for will_paginate (https://github.com/mislav/will_paginate).
-    # Uses #paginate rather than #page, since Kaminari also defines #page.
+    # Uses #paginate, not #page (also defined by Kaminari).
     class WillPaginateAdapter
       include Adapter
 

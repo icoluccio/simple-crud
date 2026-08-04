@@ -6,7 +6,7 @@ require_relative 'adapter'
 
 module SimpleCrud
   module Pagination
-    # Adapter for Kaminari (https://github.com/kaminari/kaminari).
+    # https://github.com/kaminari/kaminari
     class KaminariAdapter
       include Adapter
 

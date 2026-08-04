@@ -6,7 +6,7 @@ appraise 'rails-6.1' do
   gem 'rails', '~> 6.1.0'
 
   # activesupport 6.1.x uses mutex_m/benchmark/logger without declaring
-  # them; none is bundled by default on Ruby 3.4+/4.0+ anymore.
+  # them, and none is bundled by default on Ruby 3.4+/4.0+ anymore.
   gem 'mutex_m'
   gem 'benchmark'
   gem 'logger'

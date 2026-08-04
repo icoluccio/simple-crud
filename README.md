@@ -107,9 +107,9 @@ You'll need a few things so they work correctly:
 
 ### Options
 #### Paginate
-By default, pagination is done using [wor-paginate](https://github.com/icoluccio/wor-paginate). No options are needed, but read its documentation in case you need to customize the output.
+Pagination defaults to [wor-paginate](https://github.com/icoluccio/wor-paginate) and needs no extra options. Check its docs if you want to customize the output.
 
-Three more pagination adapters ship with the gem: require the one you want and configure it (none of the four, including wor-paginate, is a dependency of simple_crud itself; add whichever library you use to your own Gemfile).
+Three other pagination libraries have adapters built in too:
 
 ```ruby
 # Kaminari (https://github.com/kaminari/kaminari)
@@ -125,7 +125,9 @@ require 'simple_crud/pagination/pagy_adapter'
 SimpleCrud.configure { |config| config.pagination_adapter = SimpleCrud::Pagination::PagyAdapter.new }
 ```
 
-Unlike wor-paginate's `{page:, count:, total_pages:, ...}` envelope, these three render a plain JSON array of records. For anything else, implement `SimpleCrud::Pagination::Adapter` yourself:
+They render a plain JSON array rather than wor-paginate's `{page:, count:, total_pages:, ...}` envelope. None of the four pagination gems is installed automatically, so add whichever one you pick to your own Gemfile.
+
+Want something else, or nothing at all? Write your own `SimpleCrud::Pagination::Adapter`:
 
 ```ruby
 class MyPaginationAdapter
@@ -143,7 +145,7 @@ SimpleCrud.configure { |config| config.pagination_adapter = MyPaginationAdapter.
 ```
 
 #### Authorize
-By default, authorization is checked with [Pundit](https://github.com/varvet/pundit). The policy name should be the model followed by Policy, as in `AuthorPolicy`, and it should be a standard Pundit policy, for example:
+Authorization checks go through [Pundit](https://github.com/varvet/pundit) by default. Name the policy after the model plus `Policy`, e.g. `AuthorPolicy`, written as a regular Pundit policy:
 
 ```ruby
 class AuthorPolicy
@@ -161,7 +163,7 @@ end
 
 ```
 
-If you'd rather use a different authorization library, two more adapters ship with the gem: require the one you want and configure it.
+Prefer CanCanCan or Action Policy instead? Both have adapters ready to go:
 
 ```ruby
 # CanCanCan (https://github.com/CanCanCommunity/cancancan)
@@ -179,15 +181,15 @@ SimpleCrud.configure do |config|
 end
 ```
 
-Neither `cancancan` nor `action_policy` is a dependency of simple_crud itself. Add whichever one you use to your own Gemfile.
+As with pagination, simple_crud ships the adapter code but not the library itself. Add `cancancan` or `action_policy` to your own Gemfile, whichever you pick.
 
-For anything else (or no authorization at all), implement `SimpleCrud::Authorization::Adapter` yourself:
+Using something else, or skipping authorization entirely? Write your own `SimpleCrud::Authorization::Adapter`:
 
 ```ruby
 class MyAuthorizationAdapter
   include SimpleCrud::Authorization::Adapter
 
-  # Called from inside a generated CRUD action; raise (or otherwise halt
+  # Called from inside a generated CRUD action. Raise (or otherwise halt
   # the request) when the current user may not act on +record+.
   def authorize(controller, record)
     controller.authorize!(record)
@@ -242,7 +244,7 @@ It's not needed to specify paginate: true and such, since the shared examples wi
 5. Commit your changes (`git commit -am 'Add some feature'`)
 6. Run RuboCop lint (`bundle exec rubocop lib spec --format simple`)
 7. Run rspec tests (`BUNDLE_GEMFILE=gemfiles/rails_8.1.gemfile bundle exec rspec`)
-8. Push your branch (`git push origin my-new-feature`); the pre-push hook re-verifies both automatically
+8. Push your branch (`git push origin my-new-feature`). The pre-push hook re-verifies both automatically
 9. Create a new Pull Request to `main` branch
 
 ## Releases

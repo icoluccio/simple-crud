@@ -5,9 +5,8 @@ require_relative 'adapter'
 
 module SimpleCrud
   module Authorization
-    # Adapter for Action Policy (https://github.com/palkan/action_policy).
-    # Assumes the controller includes ActionPolicy::Controller (not the bare
-    # Behaviour), which defaults the rule to the current action name.
+    # Assumes ActionPolicy::Controller (not the bare Behaviour) is included,
+    # which defaults the rule to the current action name.
     class ActionPolicyAdapter
       include Adapter
 

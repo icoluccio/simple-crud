@@ -5,10 +5,8 @@ require_relative 'adapter'
 
 module SimpleCrud
   module Authorization
-    # Adapter for CanCanCan (https://github.com/CanCanCommunity/cancancan).
-    # Unlike Pundit/Action Policy, CanCanCan has no per-model policy classes:
-    # a single Ability class governs everything, so #policy_defined? can only
-    # check that some Ability is configured, not that it covers this model.
+    # A single Ability class governs everything, so #policy_defined? can
+    # only confirm one is configured, not that it covers this model.
     class CanCanCanAdapter
       include Adapter
 

@@ -3,7 +3,7 @@
 require 'active_support/all'
 require_relative 'config'
 
-# Extended onto a controller to generate CRUD actions from one declarative call.
+# Extended onto a controller for CRUD actions.
 module SimpleCrudController
   cattr_accessor :params, :permitted
 

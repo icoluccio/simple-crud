@@ -30,7 +30,7 @@ RSpec.configure do |config|
   config.include Response::JSONParser, type: :controller
   config.order = 'random'
 
-  # DatabaseCleaner already wraps each example in a transaction below;
+  # DatabaseCleaner already wraps each example in a transaction below.
   # rspec-rails's own wrapping double-nests it and was observed to leak
   # committed rows. Disable it here.
   config.use_transactional_fixtures = false
