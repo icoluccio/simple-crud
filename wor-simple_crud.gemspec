@@ -4,7 +4,7 @@ require "simple_crud/version"
 require 'date'
 
 Gem::Specification.new do |s|
-  s.name        = "simple-crud"
+  s.name        = "wor-simple_crud"
   s.version     = SimpleCrud::VERSION
   s.platform    = Gem::Platform::RUBY
   s.date        = Date.today

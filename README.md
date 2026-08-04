@@ -2,7 +2,7 @@ SimpleCrud
 =============
 
 [![CI](https://github.com/icoluccio/simple-crud/actions/workflows/ci.yml/badge.svg)](https://github.com/icoluccio/simple-crud/actions/workflows/ci.yml)
-[![Gem Version](https://badge.fury.io/rb/simple-crud.svg)](https://badge.fury.io/rb/simple-crud)
+[![Gem Version](https://badge.fury.io/rb/wor-simple_crud.svg)](https://badge.fury.io/rb/wor-simple_crud)
 
 # Table of contents
   - [Description](#description)
@@ -32,10 +32,10 @@ simple_crud_for :index
 It includes support for index, create, destroy, update and show, and options to specify whether it should apply pagination, authorization and if a particular serializer should be used. Keep in mind, though, that the idea is not to replace writing methods in controllers altogether, but only to replace most standard cases.
 
 ## Installation
-Add the following line to your application's Gemfile. The gem is named `simple-crud`, but the require path is `simple_crud`, so tell Bundler where to find it:
+Add the following line to your application's Gemfile. The gem is named `wor-simple_crud`, but the require path is `simple_crud`, so tell Bundler where to find it:
 
 ```ruby
-gem 'simple-crud', require: 'simple_crud'
+gem 'wor-simple_crud', require: 'simple_crud'
 ```
 
 And then execute:
@@ -45,7 +45,7 @@ $ bundle
 
 Or install it yourself as:
 ```bash
-$ gem install simple-crud
+$ gem install wor-simple_crud
 ```
 
 simple_crud only depends on Rails itself. Authorization (Pundit by default) and pagination (wor-paginate by default) are opt-in: add whichever libraries you actually use to your own Gemfile too.
