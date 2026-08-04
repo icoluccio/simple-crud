@@ -8,7 +8,7 @@ Devise.setup do |config|
   # confirmation, reset password and unlock tokens in the database.
   # Devise will use the `secret_key_base` as its `secret_key`
   # by default. You can change it below and use your own secret key.
-  # config.secret_key = 'f05e6c746606214db2ed264a8c9bfbd8aad8b0b85e709fa1077cf079e04033994f30fc18f53122488c1738a606a9d170be9d6aabc289f0df92d2debf15d3b89a'
+  # config.secret_key = 'f05e6c746606214db2ed264a8c9bfbd8aad8b0b85e709fa1077cf079e04033994f30fc'
 
   # ==> Controller configuration
   # Configure the parent class to the devise controllers.
@@ -114,7 +114,7 @@ Devise.setup do |config|
   config.stretches = Rails.env.test? ? 1 : 11
 
   # Set up a pepper to generate the hashed password.
-  # config.pepper = 'c25e615d58ee60500efeff6cadba59195f0de7fe747be2af41890dec0a31ba6295e920be625a2a832e6a7ed3e12a47de96fce1132976c60acc0f2ea4984a85fb'
+  # config.pepper = 'c25e615d58ee60500efeff6cadba59195f0de7fe747be2af41890dec0a31ba6295e920be'
 
   # Send a notification to the original email when the user's email is changed.
   # config.send_email_changed_notification = false
@@ -251,7 +251,8 @@ Devise.setup do |config|
   # should add them to the navigational formats lists.
   #
   # The "*/*" below is required to match Internet Explorer requests.
-  # config.navigational_formats = ['*/*', :html]
+  # This is a JSON-only API app, so no navigational (browser-redirect) formats.
+  config.navigational_formats = []
 
   # The default HTTP method used to sign out a resource. Default is :delete.
   config.sign_out_via = :delete

@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 class DummyModelsController < ApplicationController
   include Wor::Paginate
 
-  include Pundit
+  include Pundit::Authorization
   extend SimpleCrudController
 
   before_action :set_params
@@ -14,8 +16,8 @@ class DummyModelsController < ApplicationController
   end
 
   simple_crud_for :create
-  simple_crud_for :destroy, authenticate: false
+  simple_crud_for :destroy
   simple_crud_for :update
   simple_crud_for :show
   simple_crud_for :index
-  end
+end

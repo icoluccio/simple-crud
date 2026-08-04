@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 shared_examples 'simple crud for destroy' do
   describe 'DELETE #destroy' do
     context 'without authenticated user' do
@@ -8,10 +10,14 @@ shared_examples 'simple crud for destroy' do
 
     if check_authorize(:destroy)
       context 'when not authorized' do
-        subject!(:req) { delete :destroy, params: { id: model.id } }
+        include_context 'with authenticated user' if check_authenticate(:destroy)
+
+        before do
+          make_policies_fail(:destroy)
+          delete :destroy, params: { id: model.id }
+        end
 
         it 'fails with forbidden' do
-          make_policies_fail(:index)
           expect(response).to have_http_status(:forbidden)
         end
       end
@@ -22,7 +28,6 @@ shared_examples 'simple crud for destroy' do
 
       before do
         model
-        make_policies_succeed(:destroy) if check_authenticate(:destroy)
         delete :destroy, params: { id: model.id }
       end
 
@@ -36,12 +41,11 @@ shared_examples 'simple crud for destroy' do
 
       before do
         model
-        make_policies_succeed(:destroy) if check_authenticate(:destroy)
         delete :destroy, params: { id: model.id + 13 }
       end
 
-      it 'response with 200 status code' do
-        expect(response).to have_http_status(:created)
+      it 'responds with not found status' do
+        expect(response).to have_http_status(:not_found)
       end
     end
 

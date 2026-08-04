@@ -1,9 +1,8 @@
 SimpleCrud
 =============
 
-[![Build Status](https://travis-ci.org/Wolox/simple-crud.svg?branch=master)](https://travis-ci.org/Wolox/simple-crud)
+[![CI](https://github.com/icoluccio/simple-crud/actions/workflows/ci.yml/badge.svg)](https://github.com/icoluccio/simple-crud/actions/workflows/ci.yml)
 [![Gem Version](https://badge.fury.io/rb/simple-crud.svg)](https://badge.fury.io/rb/simple-crud)
-[![Code Climate](https://codeclimate.com/github/Wolox/simple-crud/badges/gpa.svg)](https://codeclimate.com/github/Wolox/simple-crud)
 
 # Table of contents
   - [Description](#description)
@@ -54,7 +53,7 @@ $ gem install simple_crud
 #### Application controller
 Before SimpleCrud can be used, some boilerplate is needed. Add the following to your ApplicationController (or every controller in case you don't want it included in all controllers)
 ```ruby
-include Pundit
+include Pundit::Authorization
 extend SimpleCrud
 
 before_action :set_params
@@ -96,7 +95,7 @@ You'll need a few things so they work correctly:
 
 ### Options
 #### Paginate
-No options are needed, but the pagination is done using [wor-paginate](https://github.com/Wolox/wor-paginate) so read the documentation in case you need to customize the output.
+No options are needed, but the pagination is done using [wor-paginate](https://github.com/icoluccio/wor-paginate) so read the documentation in case you need to customize the output.
 
 #### Authorize
 The name of the policy should be the model followed by Policy, as in `AuthorPolicy`. Support for custom policies is upcoming. The policy should be a standard Pundit policy, for example:
@@ -148,33 +147,34 @@ It's not needed to specify paginate: true and such, since the shared examples wi
 ## Contributing
 
 1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Run rubocop lint (`bundle exec rubocop -R --format simple`)
-5. Run rspec tests (`bundle exec rspec`)
-6. Push your branch (`git push origin my-new-feature`)
-7. Create a new Pull Request to `master` branch
+2. Run `bundle install && bundle exec appraisal generate` once, to install dependencies and generate the per-Rails-version gemfiles (`gemfiles/rails_*.gemfile`) used for testing
+3. Run `bundle exec overcommit --install` once, to enable the pre-push hook (runs RuboCop and the full spec suite automatically on every `git push`)
+4. Create your feature branch (`git checkout -b my-new-feature`)
+5. Commit your changes (`git commit -am 'Add some feature'`)
+6. Run RuboCop lint (`bundle exec rubocop lib spec --format simple`)
+7. Run rspec tests (`BUNDLE_GEMFILE=gemfiles/rails_8.1.gemfile bundle exec rspec`)
+8. Push your branch (`git push origin my-new-feature`) — the pre-push hook re-verifies both automatically
+9. Create a new Pull Request to `main` branch
 
 ## Releases
-📢 [See what's changed in a recent version](https://github.com/Wolox/simple-crud/releases)
+📢 [See what's changed in a recent version](https://github.com/icoluccio/simple-crud/releases)
 
 ## About ##
 
-The current maintainers of this gem are :
+The current maintainer of this gem is:
 * [Ignacio Coluccio](https://github.com/icoluccio)
 
 This project was developed by:
 * [Ignacio Coluccio](https://github.com/icoluccio)
 
-At [Wolox](http://www.wolox.com.ar)
-
-[![Wolox](https://raw.githubusercontent.com/Wolox/press-kit/master/logos/logo_banner.png)](http://www.wolox.com.ar)
+Originally at Wolox
 
 ## License
 
-**simple-crud** is available under the MIT [license](https://raw.githubusercontent.com/Wolox/simple-crud/master/LICENSE.md).
+**simple-crud** is available under the MIT [license](https://raw.githubusercontent.com/icoluccio/simple-crud/main/LICENSE.md).
 
     Copyright (c) 2017 Wolox
+    Copyright (c) 2026 Ignacio Coluccio
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal

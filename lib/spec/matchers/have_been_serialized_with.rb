@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec::Matchers.define :have_been_serialized_with do |serializer|
   # TODO: Add support for optional relations `has_many :zarasa, if: zarasa2`
   # TODO: Support multilevel serialization

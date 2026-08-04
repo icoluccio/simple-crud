@@ -1,5 +1,7 @@
 spec/dummy/db/*.sqlite3
 spec/dummy/db/*.sqlite3-journal
+spec/dummy/db/*.sqlite3-shm
+spec/dummy/db/*.sqlite3-wal
 spec/dummy/log/*.log
 spec/dummy/tmp/
 
@@ -330,3 +332,7 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.gitignore.io/api/ruby,rubymine,rails,emacs,vim,sublimetext,osx,macos,linux,windows
+
+### Appraisal ###
+/gemfiles/*.gemfile
+/gemfiles/*.gemfile.lock

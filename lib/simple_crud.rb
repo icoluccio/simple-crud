@@ -1,8 +1,8 @@
+# frozen_string_literal: true
+
+require_relative 'simple_crud/version'
 require_relative 'simple_crud/simple_crud_controller'
 
+# Simplified CRUD endpoints for Rails API controllers.
 module SimpleCrud
-  VERSION = '0.5'.freeze
-  def self.configure
-    yield Config
-  end
 end

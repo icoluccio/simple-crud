@@ -1,6 +1,7 @@
-require 'fictium'
+# frozen_string_literal: true
+
 shared_examples 'simple crud for show' do
-  describe action 'GET #show' do
+  describe 'GET #show' do
     subject(:show_request) { get :show, params: show_params }
 
     before do
@@ -8,14 +9,13 @@ shared_examples 'simple crud for show' do
     end
 
     context 'without authenticated user' do
-      subject!(:req) { post :create, params: attributes_for(model_class) }
+      subject!(:req) { get :show, params: { id: model.id } }
 
       include_examples 'unauthorized when not logged in'
     end
 
-    describe example 'when the model exists' do
+    describe 'when the model exists' do
       include_context 'with authenticated user'
-      default_example
       let(:show_params) { { id: model.id } }
 
       before do
@@ -35,7 +35,7 @@ shared_examples 'simple crud for show' do
       end
     end
 
-    describe example 'when the model does not exist' do
+    describe 'when the model does not exist' do
       include_context 'with authenticated user'
       let(:show_params) { { id: -1 } }
 

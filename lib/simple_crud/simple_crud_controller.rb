@@ -1,5 +1,10 @@
+# frozen_string_literal: true
+
 require 'byebug'
 require 'active_support/all'
+
+# Mixed into a Rails controller via `extend` to generate standard CRUD
+# actions (index/show/create/update/destroy) from a single declarative call.
 module SimpleCrudController
   cattr_accessor :params, :permitted
 
@@ -9,7 +14,7 @@ module SimpleCrudController
   ### authenticate: use devise to authenticate
   ### serializer: use a particular serializer (both each_serializer and serializer)
   def simple_crud_for(method, parameters = {})
-    parameters = set_parameters(parameters)
+    parameters = parameters_with_defaults(parameters)
     klass = simple_crud_controller_model
     check_valid_method(method)
     check_policies(parameters)
@@ -18,7 +23,7 @@ module SimpleCrudController
     write_metadata(method, parameters)
   end
 
-  def set_parameters(parameters)
+  def parameters_with_defaults(parameters)
     defaults = { authorize: true, paginate: true, authenticate: true, serializer: nil }
     defaults.each do |key, value|
       parameters[key] = value unless parameters.key?(key)
@@ -77,7 +82,7 @@ module SimpleCrudController
     lambda do
       authenticate_user! if parameters[:authenticate]
       requested = klass.find(params[:id])
-      authorize requested if  parameters[:authorize] && parameters[:authenticate]
+      authorize requested if parameters[:authorize] && parameters[:authenticate]
       render json: klass.find(params[:id]).destroy
     end
   end

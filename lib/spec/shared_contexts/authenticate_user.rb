@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.shared_context 'with authenticated user' do
   let(:current_user) { create(:user) }
 
