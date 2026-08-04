@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'byebug'
 require 'active_support/all'
 
 # Mixed into a Rails controller via `extend` to generate standard CRUD
