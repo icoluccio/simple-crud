@@ -6,13 +6,13 @@ AllCops:
     - spec/dummy/config/**/*
     - spec/spec_helper.rb
 
-Style/Documentation:
+Documentation:
   Enabled: false
 
-Metrics/LineLength:
+LineLength:
   Max: 99
 
-Style/FrozenStringLiteralComment:
+FrozenStringLiteralComment:
   Enabled: false
 
 Metrics/BlockLength:
@@ -24,7 +24,7 @@ Metrics/BlockLength:
 
 require: rubocop-rspec
 
-Naming/VariableNumber:
+Style/VariableNumber:
   EnforcedStyle: snake_case
 
 RSpec/ExampleLength:
