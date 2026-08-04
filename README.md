@@ -116,7 +116,27 @@ end
 
 ```
 
-If you'd rather use a different authorization library (or none of the above), implement `SimpleCrud::Authorization::Adapter` and configure it:
+If you'd rather use a different authorization library, two more adapters ship with the gem — require the one you want and configure it:
+
+```ruby
+# CanCanCan (https://github.com/CanCanCommunity/cancancan)
+require 'simple_crud/authorization/can_can_can_adapter'
+SimpleCrud.configure do |config|
+  config.authorization_adapter = SimpleCrud::Authorization::CanCanCanAdapter.new
+end
+```
+
+```ruby
+# Action Policy (https://github.com/palkan/action_policy)
+require 'simple_crud/authorization/action_policy_adapter'
+SimpleCrud.configure do |config|
+  config.authorization_adapter = SimpleCrud::Authorization::ActionPolicyAdapter.new
+end
+```
+
+Neither `cancancan` nor `action_policy` is a dependency of simple_crud itself — add whichever one you use to your own Gemfile.
+
+For anything else (or no authorization at all), implement `SimpleCrud::Authorization::Adapter` yourself:
 
 ```ruby
 class MyAuthorizationAdapter
@@ -125,7 +145,7 @@ class MyAuthorizationAdapter
   # Called from inside a generated CRUD action; raise (or otherwise halt
   # the request) when the current user may not act on +record+.
   def authorize(controller, record)
-    controller.authorize!(record) # e.g. Action Policy's own method
+    controller.authorize!(record)
   end
 
   # Called once, when simple_crud_for is invoked, to fail fast if the

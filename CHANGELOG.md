@@ -6,7 +6,7 @@
 * Fix several latent bugs surfaced while getting the CRUD shared examples to 100% coverage (authorization checks that never actually ran, mismatched test fixtures, a dead `SimpleCrud.configure` that always raised).
 * Add an overcommit pre-push hook (RuboCop + full spec suite) and tighten `.rubocop.yml` to the default cop set.
 * `simple_crud` now `require`s `pundit` and `wor/paginate` itself, so consumers no longer need to add them to their own Gemfile or manually `require 'wor/paginate'` just to make the documented ApplicationController setup work.
-* Make the authorization backend pluggable via `SimpleCrud::Authorization::Adapter` (`SimpleCrud.configure { |c| c.authorization_adapter = ... }`); Pundit remains the default, zero-setup-required adapter.
+* Make the authorization backend pluggable via `SimpleCrud::Authorization::Adapter` (`SimpleCrud.configure { |c| c.authorization_adapter = ... }`); Pundit remains the default, zero-setup-required adapter. Ship CanCanCan and Action Policy as ready-to-use adapters too (neither is a hard dependency; require the one you use).
 
 ### V0.1
 Release!

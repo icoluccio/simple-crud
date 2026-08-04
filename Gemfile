@@ -14,9 +14,11 @@ gemspec
 # gem 'byebug', group: [:development, :test]
 
 group :development, :test do
+  gem 'action_policy', '~> 0.7.6', require: false
   gem 'active_model_serializers', '~> 0.10.16'
   gem 'appraisal', '~> 2.5'
   gem 'byebug', '~> 13.0'
+  gem 'cancancan', '~> 3.6', require: false
   gem 'database_cleaner-active_record', '~> 2.2', require: 'database_cleaner/active_record'
   gem 'devise', '>= 4.9', '< 6'
   gem 'devise-jwt', '~> 0.13'
