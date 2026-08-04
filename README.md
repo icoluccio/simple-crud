@@ -98,7 +98,7 @@ You'll need a few things so they work correctly:
 No options are needed, but the pagination is done using [wor-paginate](https://github.com/icoluccio/wor-paginate) so read the documentation in case you need to customize the output.
 
 #### Authorize
-The name of the policy should be the model followed by Policy, as in `AuthorPolicy`. Support for custom policies is upcoming. The policy should be a standard Pundit policy, for example:
+By default, authorization is checked with [Pundit](https://github.com/varvet/pundit). The policy name should be the model followed by Policy, as in `AuthorPolicy`, and it should be a standard Pundit policy, for example:
 
 ```ruby
 class AuthorPolicy
@@ -114,6 +114,30 @@ class AuthorPolicy
   end
 end
 
+```
+
+If you'd rather use a different authorization library (or none of the above), implement `SimpleCrud::Authorization::Adapter` and configure it:
+
+```ruby
+class MyAuthorizationAdapter
+  include SimpleCrud::Authorization::Adapter
+
+  # Called from inside a generated CRUD action; raise (or otherwise halt
+  # the request) when the current user may not act on +record+.
+  def authorize(controller, record)
+    controller.authorize!(record) # e.g. Action Policy's own method
+  end
+
+  # Called once, when simple_crud_for is invoked, to fail fast if the
+  # given model has no authorization rules defined at all.
+  def policy_defined?(model_class)
+    Kernel.const_defined?("#{model_class}Policy")
+  end
+end
+
+SimpleCrud.configure do |config|
+  config.authorization_adapter = MyAuthorizationAdapter.new
+end
 ```
 
 #### Authenticate
