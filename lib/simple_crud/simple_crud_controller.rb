@@ -3,8 +3,7 @@
 require 'active_support/all'
 require_relative 'config'
 
-# Mixed into a Rails controller via `extend` to generate standard CRUD
-# actions (index/show/create/update/destroy) from a single declarative call.
+# Extended onto a controller to generate CRUD actions from one declarative call.
 module SimpleCrudController
   cattr_accessor :params, :permitted
 

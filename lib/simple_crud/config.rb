@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
 module SimpleCrud
-  # Holds simple_crud's configurable pieces. Set via SimpleCrud.configure.
-  # Default adapters are only required on first access, so an app that
-  # never uses authorize: true / paginate: true needs neither gem installed.
+  # Holds simple_crud's configurable pieces, set via SimpleCrud.configure.
   class Config
     class << self
       attr_writer :authorization_adapter, :pagination_adapter

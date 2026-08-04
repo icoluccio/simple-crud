@@ -2,11 +2,10 @@
 
 module SimpleCrud
   module Pagination
-    # Implement this and pass an instance to SimpleCrud.configure to plug in
-    # a library other than wor-paginate (the default, see WorPaginateAdapter).
+    # Implement to plug in a pagination library other than wor-paginate
+    # (the default, see WorPaginateAdapter).
     module Adapter
-      # Called when paginate: true. Must render the response itself, same
-      # as the other generated CRUD actions -- there's no render step after.
+      # Called when paginate: true. Must render the response itself.
       def paginate(controller, klass, options)
         raise NotImplementedError
       end

@@ -6,8 +6,7 @@ require_relative 'adapter'
 module SimpleCrud
   module Pagination
     # Adapter for Pagy (https://github.com/ddnexus/pagy). Assumes the
-    # controller includes Pagy::Method. Renders a plain array, unlike
-    # wor-paginate's {page:, count:, ...} envelope.
+    # controller includes Pagy::Method.
     class PagyAdapter
       include Adapter
 
