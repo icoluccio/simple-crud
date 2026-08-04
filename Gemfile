@@ -24,7 +24,10 @@ group :development, :test do
   gem 'devise-jwt', '~> 0.13'
   gem 'factory_bot_rails', '~> 6.5'
   gem 'faker', '~> 3.8'
+  gem 'kaminari', '~> 1.2', require: false
   gem 'overcommit', '~> 0.72'
+  gem 'pagy', '~> 43.0', require: false
+  gem 'pundit', '~> 2.5'
   gem 'rake', '~> 13.4'
   gem 'rspec', '~> 3.13'
   gem 'rspec-rails', '>= 6.0', '< 9'
@@ -34,4 +37,6 @@ group :development, :test do
   # sqlite3 is pinned per Rails version in Appraisals instead, since the
   # required range differs across supported versions.
   gem 'webmock', '~> 3.26'
+  gem 'will_paginate', '~> 4.0', require: false
+  gem 'wor-paginate', '~> 0.4'
 end

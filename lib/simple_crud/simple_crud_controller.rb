@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 require 'active_support/all'
-require 'pundit'
-require 'wor/paginate'
 require_relative 'config'
 
 # Mixed into a Rails controller via `extend` to generate standard CRUD
@@ -59,11 +57,16 @@ module SimpleCrudController
     lambda do
       authenticate_user! if parameters[:authenticate]
       SimpleCrudController.maybe_authorize(self, klass.new, parameters)
-      paginate = parameters[:paginate]
-      serializer = parameters[:serializer]
-      options = {}.merge(each_serializer: serializer).compact
+      options = {}.merge(each_serializer: parameters[:serializer]).compact
+      SimpleCrudController.render_index(self, klass, options, parameters)
+    end
+  end
 
-      paginate ? (render_paginated klass, options) : render({ json: klass.all }.merge(options))
+  def self.render_index(controller, klass, options, parameters)
+    if parameters[:paginate]
+      SimpleCrud::Config.pagination_adapter.paginate(controller, klass, options)
+    else
+      controller.render({ json: klass.all }.merge(options))
     end
   end
 

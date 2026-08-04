@@ -48,12 +48,22 @@ Or install it yourself as:
 $ gem install simple_crud
 ```
 
+simple_crud only depends on Rails itself. Authorization (Pundit by default) and pagination (wor-paginate by default) are opt-in — add whichever libraries you actually use to your own Gemfile too:
+
+```ruby
+gem 'pundit'
+gem 'wor-paginate'
+```
+
+See [Authorize](#authorize) and [Paginate](#paginate) below for the other supported libraries, or to skip either feature (`authorize: false` / `paginate: false`) and depend on neither.
+
 ## Usage
 ### Setup
 #### Application controller
 Before SimpleCrud can be used, some boilerplate is needed. Add the following to your ApplicationController (or every controller in case you don't want it included in all controllers)
 ```ruby
 include Pundit::Authorization
+include Wor::Paginate
 extend SimpleCrud
 
 before_action :set_params
@@ -62,6 +72,8 @@ def set_params
   SimpleCrudController.params = params
 end
 ```
+
+(Skip `include Pundit::Authorization` / `include Wor::Paginate` if you're using a different adapter, or `authorize: false` / `paginate: false` everywhere.)
 
 
 ### Each controller
@@ -95,7 +107,40 @@ You'll need a few things so they work correctly:
 
 ### Options
 #### Paginate
-No options are needed, but the pagination is done using [wor-paginate](https://github.com/icoluccio/wor-paginate) so read the documentation in case you need to customize the output.
+By default, pagination is done using [wor-paginate](https://github.com/icoluccio/wor-paginate) — no options are needed, but read its documentation in case you need to customize the output.
+
+Three more pagination adapters ship with the gem — require the one you want and configure it (none of the four, including wor-paginate, is a dependency of simple_crud itself; add whichever library you use to your own Gemfile):
+
+```ruby
+# Kaminari (https://github.com/kaminari/kaminari)
+require 'simple_crud/pagination/kaminari_adapter'
+SimpleCrud.configure { |config| config.pagination_adapter = SimpleCrud::Pagination::KaminariAdapter.new }
+
+# will_paginate (https://github.com/mislav/will_paginate)
+require 'simple_crud/pagination/will_paginate_adapter'
+SimpleCrud.configure { |config| config.pagination_adapter = SimpleCrud::Pagination::WillPaginateAdapter.new }
+
+# Pagy (https://github.com/ddnexus/pagy) -- requires `include Pagy::Method` in your ApplicationController
+require 'simple_crud/pagination/pagy_adapter'
+SimpleCrud.configure { |config| config.pagination_adapter = SimpleCrud::Pagination::PagyAdapter.new }
+```
+
+Unlike wor-paginate's `{page:, count:, total_pages:, ...}` envelope, these three render a plain JSON array of records. For anything else, implement `SimpleCrud::Pagination::Adapter` yourself:
+
+```ruby
+class MyPaginationAdapter
+  include SimpleCrud::Pagination::Adapter
+
+  # Called from inside the generated index action when paginate: true.
+  # Must render the response itself.
+  def paginate(controller, klass, options)
+    records = klass.some_pagination_method(controller.params[:page])
+    controller.render({ json: records }.merge(options))
+  end
+end
+
+SimpleCrud.configure { |config| config.pagination_adapter = MyPaginationAdapter.new }
+```
 
 #### Authorize
 By default, authorization is checked with [Pundit](https://github.com/varvet/pundit). The policy name should be the model followed by Policy, as in `AuthorPolicy`, and it should be a standard Pundit policy, for example:

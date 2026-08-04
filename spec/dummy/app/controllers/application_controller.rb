@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
+require 'pagy'
+
 class ApplicationController < ActionController::Base
   protect_from_forgery with: :exception
   include Wor::Paginate
+  include Pagy::Method
   include ActionController::MimeResponds
   respond_to :json
   # i18n configuration. See: http://guides.rubyonrails.org/i18n.html

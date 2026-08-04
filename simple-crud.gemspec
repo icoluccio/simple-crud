@@ -19,6 +19,4 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
 
   s.add_dependency 'rails', '>= 6.1', '< 9'
-  s.add_dependency 'pundit', '~> 2.5'
-  s.add_dependency 'wor-paginate', '~> 0.4'
 end
