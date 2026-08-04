@@ -13,7 +13,7 @@ describe DummyModelsController, type: :controller do
 
     it 'responds with unprocessable entity' do
       post :create, params: { something: 1, user_id: current_user.id }
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(ApplicationController::UNPROCESSABLE_STATUS)
     end
   end
 end

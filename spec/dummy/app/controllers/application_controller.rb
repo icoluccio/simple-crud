@@ -3,6 +3,14 @@
 require 'pagy'
 
 class ApplicationController < ActionController::Base
+  # :unprocessable_entity was renamed :unprocessable_content in Rack 3.1;
+  # older Rack (bundled with Rails 6.1/7.0) doesn't recognize the new name.
+  UNPROCESSABLE_STATUS = if Rack::Utils::SYMBOL_TO_STATUS_CODE.key?(:unprocessable_content)
+                           :unprocessable_content
+                         else
+                           :unprocessable_entity
+                         end
+
   protect_from_forgery with: :exception
   include Wor::Paginate
   include Pagy::Method
@@ -21,7 +29,7 @@ class ApplicationController < ActionController::Base
   end
 
   def unprocessable(exception)
-    render json: { errors: exception }, status: :unprocessable_entity
+    render json: { errors: exception }, status: UNPROCESSABLE_STATUS
   end
 
   def forbidden(exception)
