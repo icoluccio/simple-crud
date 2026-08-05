@@ -6,7 +6,7 @@ PrePush:
 
   RuboCop:
     enabled: true
-    command: ['bash', '-c', 'bundle exec rubocop']
+    command: ['bash', '-c', 'bundle exec rubocop lib spec']
 
   RSpec:
     enabled: true
