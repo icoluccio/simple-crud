@@ -6,11 +6,10 @@ PrePush:
 
   RuboCop:
     enabled: true
-    command: ['bundle', 'exec', 'rubocop']
+    command: ['bash', '-c', 'bundle exec rubocop lib spec']
 
-  CustomScript:
+  RSpec:
     enabled: true
-    description: 'Run RSpec'
     command: ['bundle', 'exec', 'rspec']
     env:
       BUNDLE_GEMFILE: gemfiles/rails_8.1.gemfile
