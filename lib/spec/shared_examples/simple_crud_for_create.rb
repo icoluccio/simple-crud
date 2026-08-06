@@ -55,7 +55,7 @@ shared_examples 'simple crud for create' do
         end
 
         it 'responds with unprocessable entity' do
-          expect(response).to have_http_status(422)
+          expect(response).to have_http_status(unprocessable_status)
         end
 
         it 'returns the validation errors' do

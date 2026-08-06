@@ -4,6 +4,12 @@ def get_option(method, option)
   described_class.instance_variable_get(:@simple_crud_metadata)[method][option]
 end
 
+# :unprocessable_entity was renamed :unprocessable_content in Rack 3.1.
+# Resolve the current Rack's canonical symbol for 422.
+def unprocessable_status
+  Rack::Utils::SYMBOL_TO_STATUS_CODE.invert[422]
+end
+
 %i[paginate authorize authenticate serializer html finder scope raise_on_invalid].each do |option|
   define_method("check_#{option}") do |method|
     get_option(method, option)

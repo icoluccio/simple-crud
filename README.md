@@ -14,7 +14,10 @@ SimpleCrud
       - [Options](#options)
         - [Paginate](#paginate)
         - [Authorize](#authorize)
+        - [Authenticate](#authenticate)
         - [Serializer](#serializer)
+        - [HTML](#html)
+        - [Finder](#finder)
       - [Shared examples](#shared-examples)
   - [Contributing](#contributing)
   - [Releases](#releases)
@@ -102,6 +105,10 @@ simple_crud_for :index, paginate: false, authorize: false, serializer: CustomSer
 - Authorize: whether it should check authorization via the configured authorization adapter (Pundit by default)
 - Authenticate: whether it should use Devise to check for a current_user
 - Serializer: specify a particular serializer you should use
+- Html: only valid for `:index`. Renders the action's ERB template (`index.html.erb`) instead of JSON, exposing the paginated records to the view as `@records`. Only meaningful in controllers that render templates
+- Finder: only valid for `:show`, `:update` and `:destroy`. A `Proc`/`lambda` (invoked with the controller's params) or a `Symbol` naming a class method on the model, used to look up the record instead of `klass.find(params[:id])`
+- Scope: only valid for `:index`. A `Proc`/`lambda` taking `current_user` that returns the relation to list, overriding the default `policy_scope`
+- Raise_on_invalid: only valid for `:create` and `:update`. Keeps the strict `create!`/`update!` semantics (raising on invalid input) instead of returning `422` with the validation errors
 
 You'll need a few things so they work correctly:
 
@@ -143,7 +150,6 @@ end
 
 SimpleCrud.configure { |config| config.pagination_adapter = MyPaginationAdapter.new }
 ```
-
 #### Authorize
 Authorization checks go through [Pundit](https://github.com/varvet/pundit) by default. Name the policy after the model plus `Policy`, e.g. `AuthorPolicy`, written as a regular Pundit policy:
 
@@ -159,8 +165,26 @@ class AuthorPolicy
   def show?
     user.present?
   end
+
+  class Scope
+    def initialize(user, scope)
+      @user = user
+      @scope = scope
+    end
+
+    # Used by :index to scope the listed records to the current user.
+    def resolve
+      @scope.where(user: @user)
+    end
+  end
 end
 
+```
+
+When `authorize: true`, the `:index` action paginates the Pundit `policy_scope` of the model (falling back to the full relation when no `Scope` is defined) instead of `klass.all`, so "only my records" scoping works out of the box. Override the scope per action with the `scope:` option:
+
+```ruby
+simple_crud_for :index, scope: ->(user) { Classroom.visible_to(user) }
 ```
 
 Prefer CanCanCan or Action Policy instead? Both have adapters ready to go:
@@ -200,6 +224,13 @@ class MyAuthorizationAdapter
   def policy_defined?(model_class)
     Kernel.const_defined?("#{model_class}Policy")
   end
+
+  # Called when rendering :index with authorize: true. Must return the
+  # relation the current user is allowed to list. The default returns
+  # the full relation.
+  def policy_scope(controller, model_class)
+    model_class.all
+  end
 end
 
 SimpleCrud.configure do |config|
@@ -219,6 +250,31 @@ class AuthorSerializer < ActiveModel::Serializer
 end
 ```
 
+#### HTML
+For server-rendered apps, `:index` can render an ERB template instead of JSON. Pass `html: true` to render the template named after the action (`classrooms/index.html.erb`); the paginated records are exposed to the view as `@records`. Pagination still applies (or use `paginate: false`), so be sure the controller can render templates (e.g. `ActionController::Base`).
+
+```ruby
+simple_crud_for :index, html: true
+```
+
+Or pass a block that receives the records and renders explicitly, overriding the auto-render:
+
+```ruby
+simple_crud_for :index do |records|
+  render :index, locals: { classrooms: records }
+end
+```
+
+#### Finder
+Slug-based (or otherwise custom) record lookups are supported on `:show`, `:update` and `:destroy`. Pass a `Proc`/`lambda` that maps the controller's `params` to a record, or a `Symbol` naming a class method on the model that takes the params:
+
+```ruby
+simple_crud_for :show, finder: ->(params) { Classroom.find_by!(slug: params[:slug]) }
+simple_crud_for :update, finder: :find_by_slug
+```
+
+When omitted it defaults to `klass.find(params[:id])`, and `not_found` is still returned whenever the finder finds no record.
+
 ### Shared examples
 While optional, using the included shared examples saves you from writing the standard test cases for the methods. You can even use them if you didn't use `simple_crud_for`, as a set of basic tests. To include them, just add `require 'simple_crud/rspec'` to your `rails_helper.rb` file and add the lines you need to your `*_spec.rb` files:
 ```ruby
@@ -231,6 +287,17 @@ describe V1::Backoffice::AuthorsController do
   include_examples 'simple crud for index'
   include_examples 'simple crud for destroy'
 end
+```
+
+The `create` and `update` examples now also cover the `422` response with validation errors (skipped when `raise_on_invalid: true`). Controllers using the new options can include their dedicated examples too:
+
+```ruby
+include_examples 'simple crud for index with html'       # html: true
+include_examples 'simple crud for index with block'      # render block
+include_examples 'simple crud for index with scope'      # scope: ->(user) { ... }
+include_examples 'simple crud for show with finder'      # finder on :show
+include_examples 'simple crud for update with finder'    # finder on :update
+include_examples 'simple crud for destroy with finder'   # finder on :destroy
 ```
 
 It's not needed to specify paginate: true and such, since the shared examples will use the configuration that was originally passed to simple_crud_for
