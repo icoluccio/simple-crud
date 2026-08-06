@@ -57,5 +57,24 @@ shared_examples 'simple crud for update' do
         expect(model_class_object.count).to be 0
       end
     end
+
+    unless check_raise_on_invalid(:update)
+      context 'when updating with invalid attributes' do
+        include_context 'with authenticated user'
+
+        before do
+          model
+          put :update, params: { id: model.id, name: nil, user_id: current_user.id }
+        end
+
+        it 'responds with unprocessable entity' do
+          expect(response).to have_http_status(422)
+        end
+
+        it 'returns the validation errors' do
+          expect(response_body['errors']).to include("Name can't be blank")
+        end
+      end
+    end
   end
 end

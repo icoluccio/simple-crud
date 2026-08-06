@@ -4,4 +4,8 @@ require_relative 'dummy_model_policy'
 class DummyModel < ApplicationRecord
   belongs_to :user
   validates :name, presence: true
+
+  def self.find_by_slug(params)
+    find_by!(slug: params[:slug])
+  end
 end

@@ -45,5 +45,27 @@ shared_examples 'simple crud for create' do
         expect(model_class_object.last).to have_attributes(create_params)
       end
     end
+
+    unless check_raise_on_invalid(:create)
+      context 'when creating with invalid attributes' do
+        include_context 'with authenticated user' if check_authenticate(:create)
+
+        before do
+          post :create, params: { user_id: current_user.id }
+        end
+
+        it 'responds with unprocessable entity' do
+          expect(response).to have_http_status(422)
+        end
+
+        it 'returns the validation errors' do
+          expect(response_body['errors']).to include("Name can't be blank")
+        end
+
+        it 'does not create a model' do
+          expect(model_class_object.count).to be 0
+        end
+      end
+    end
   end
 end

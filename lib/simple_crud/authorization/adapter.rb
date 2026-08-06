@@ -15,6 +15,13 @@ module SimpleCrud
       def policy_defined?(model_class)
         raise NotImplementedError
       end
+
+      # Called when rendering :index with authorize: true. Must return the
+      # relation the current user is allowed to list. Defaults to the full
+      # relation so no scoping dependency is required.
+      def policy_scope(_controller, model_class)
+        model_class.all
+      end
     end
   end
 end

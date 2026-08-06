@@ -12,7 +12,7 @@ class DummyModelsController < ApplicationController
   end
 
   def dummy_model_params
-    params.permit(:name, :something, :user_id)
+    params.permit(:name, :something, :user_id, :slug)
   end
 
   simple_crud_for :create
