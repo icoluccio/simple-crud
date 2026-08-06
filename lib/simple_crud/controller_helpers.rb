@@ -25,12 +25,19 @@ module SimpleCrud
 
     def index_relation(controller, klass, parameters)
       if parameters[:scope]
-        parameters[:scope].call(controller.current_user)
+        call_scope(parameters[:scope], controller)
       elsif parameters[:authorize]
         SimpleCrud::Config.authorization_adapter.policy_scope(controller, klass)
       else
         klass.all
       end
+    end
+
+    def call_scope(scope, controller)
+      user = controller.current_user
+      return scope.call(user) if scope.arity == 1
+
+      scope.call(user, controller.params)
     end
 
     def index_records(controller, relation, options, parameters)

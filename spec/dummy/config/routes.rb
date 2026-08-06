@@ -24,6 +24,10 @@ Rails.application.routes.draw do
     resources :dummy_models, only: :index
   end
 
+  namespace :scoped_params do
+    resources :dummy_models, only: :index
+  end
+
   namespace :strict do
     resources :dummy_models, only: %i[create update]
   end
