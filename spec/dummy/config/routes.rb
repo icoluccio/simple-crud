@@ -31,4 +31,32 @@ Rails.application.routes.draw do
   namespace :strict do
     resources :dummy_models, only: %i[create update]
   end
+
+  namespace :html_show do
+    resources :dummy_models, only: :show
+  end
+
+  namespace :block_show do
+    resources :dummy_models, only: :show
+  end
+
+  namespace :html_new do
+    resources :dummy_models, only: :new
+  end
+
+  namespace :block_new do
+    resources :dummy_models, only: :new
+  end
+
+  namespace :html_create do
+    resources :dummy_models, only: :create
+  end
+
+  namespace :block_create do
+    resources :dummy_models, only: :create
+  end
+
+  namespace :html_update do
+    resources :dummy_models, only: :update
+  end
 end

@@ -6,26 +6,8 @@ shared_examples 'simple crud for index' do
 
     before { created_models }
 
-    context 'without authenticated user' do
-      subject!(:req) { get :index }
-
-      include_examples 'unauthorized when not logged in' if check_authenticate(:index)
-    end
-
-    if check_authorize(:index)
-      context 'when not authorized' do
-        include_context 'with authenticated user' if check_authenticate(:index)
-
-        before do
-          make_policies_fail(:index)
-          get :index
-        end
-
-        it 'fails with forbidden' do
-          expect(response).to have_http_status(:forbidden)
-        end
-      end
-    end
+    include_examples 'simple crud without authenticated user', :index
+    include_examples 'simple crud when not authorized', :index, :get
 
     context 'with authenticated user' do
       include_context 'with authenticated user' if check_authenticate(:index)

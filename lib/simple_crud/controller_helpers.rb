@@ -23,6 +23,24 @@ module SimpleCrud
       end
     end
 
+    def render_show(controller, record, options, parameters, &block)
+      if parameters[:html] || block
+        controller.instance_variable_set(:@record, record)
+        block ? controller.instance_exec(record, &block) : controller.render(:show)
+      else
+        controller.render({ json: record }.merge(options))
+      end
+    end
+
+    def render_new(controller, record, parameters, &block)
+      if parameters[:html] || block
+        controller.instance_variable_set(:@record, record)
+        block ? controller.instance_exec(record, &block) : controller.render(:new)
+      else
+        controller.render json: record
+      end
+    end
+
     def index_relation(controller, klass, parameters)
       if parameters[:scope]
         call_scope(parameters[:scope], controller)
@@ -60,15 +78,18 @@ module SimpleCrud
       record
     end
 
-    def render_save_outcome(controller, record, parameters, status, &persist)
-      if parameters[:raise_on_invalid]
-        persist.call(bang: true)
-        controller.render json: record, status: status
-      elsif persist.call(bang: false)
-        controller.render json: record, status: status
-      else
-        controller.render json: { errors: record.errors.full_messages }, status: 422
+    def persist_and_render(controller, record, parameters, options, persist, &block)
+      saved = parameters[:raise_on_invalid] ? persist.call(bang: true) : persist.call(bang: false)
+
+      if block || parameters[:html]
+        controller.instance_variable_set(:@record, record)
+        return controller.instance_exec(record, saved, &block) if block
+
+        return saved ? controller.redirect_to(record) : controller.render(options[:failure_template])
       end
+      return controller.render(json: record, status: options[:status]) if saved
+
+      controller.render json: { errors: record.errors.full_messages }, status: 422
     end
   end
 end

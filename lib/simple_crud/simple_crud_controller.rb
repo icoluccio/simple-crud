@@ -15,10 +15,12 @@ module SimpleCrudController
   ### paginate: paginate the list via Config.pagination_adapter (wor-paginate by default)
   ### authenticate: use devise to authenticate
   ### serializer: use a particular serializer (both each_serializer and serializer)
-  ### html: render the action's ERB template for :index instead of JSON
+  ### html: render the action's ERB template instead of JSON (index/show/new/create/update)
   ### finder: custom record lookup (Proc/lambda or Symbol) for :show/:update/:destroy
-  ### scope: custom index scope (Proc/lambda taking current_user), overrides policy_scope
+  ### scope: custom index scope (Proc/lambda taking current_user and optional params), overrides policy_scope
   ### raise_on_invalid: use strict create!/update! semantics instead of returning 422
+  ### A block given to simple_crud_for renders explicitly: it receives the records for :index,
+  ### the record for :show/:new, or the record and a saved flag for :create/:update
   def simple_crud_for(method, parameters = {}, &block)
     parameters = parameters_with_defaults(parameters)
     klass = simple_crud_controller_model
@@ -45,14 +47,23 @@ module SimpleCrudController
     @simple_crud_metadata[method] = parameters
   end
 
-  def crud_lambda_for_show(klass, parameters = {})
+  def crud_lambda_for_show(klass, parameters = {}, &block)
     lambda do
       authenticate_user! if parameters[:authenticate]
       requested = SimpleCrudController.find_record(klass, self, parameters)
 
       options = {}.merge(serializer: parameters[:serializer]).compact
       SimpleCrudController.maybe_authorize(self, requested, parameters)
-      render({ json: requested }.merge(options))
+      SimpleCrudController.render_show(self, requested, options, parameters, &block)
+    end
+  end
+
+  def crud_lambda_for_new(klass, parameters = {}, &block)
+    lambda do
+      authenticate_user! if parameters[:authenticate]
+      record = klass.new
+      SimpleCrudController.maybe_authorize(self, record, parameters)
+      SimpleCrudController.render_new(self, record, parameters, &block)
     end
   end
 
@@ -65,27 +76,27 @@ module SimpleCrudController
     end
   end
 
-  def crud_lambda_for_create(klass, parameters = {})
+  def crud_lambda_for_create(klass, parameters = {}, &block)
     lambda do
       authenticate_user! if parameters[:authenticate]
       permitted_params = send("#{self.class.simple_crud_controller_model.to_s.underscore}_params")
       record = klass.new(permitted_params)
       SimpleCrudController.maybe_authorize(self, record, parameters)
-      SimpleCrudController.render_save_outcome(self, record, parameters, :created) do |bang:|
-        bang ? record.save! : record.save
-      end
+      options = { status: :created, failure_template: :new }
+      persist = ->(bang:) { bang ? record.save! : record.save }
+      SimpleCrudController.persist_and_render(self, record, parameters, options, persist, &block)
     end
   end
 
-  def crud_lambda_for_update(klass, parameters = {})
+  def crud_lambda_for_update(klass, parameters = {}, &block)
     lambda do
       authenticate_user! if parameters[:authenticate]
       requested = SimpleCrudController.find_record(klass, self, parameters)
       SimpleCrudController.maybe_authorize(self, requested, parameters)
       permitted_params = send("#{self.class.simple_crud_controller_model.to_s.underscore}_params")
-      SimpleCrudController.render_save_outcome(self, requested, parameters, :ok) do |bang:|
-        bang ? requested.update!(permitted_params) : requested.update(permitted_params)
-      end
+      options = { status: :ok, failure_template: :edit }
+      persist = ->(bang:) { bang ? requested.update!(permitted_params) : requested.update(permitted_params) }
+      SimpleCrudController.persist_and_render(self, requested, parameters, options, persist, &block)
     end
   end
 
@@ -103,7 +114,7 @@ module SimpleCrudController
   end
 
   def check_valid_method(method)
-    throw 'invalid method' unless %i[show index create update destroy].include? method
+    throw 'invalid method' unless %i[show index create update destroy new].include? method
   end
 
   def check_policies(parameters)

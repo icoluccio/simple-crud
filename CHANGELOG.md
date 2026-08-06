@@ -1,5 +1,14 @@
 ## Change log
 
+### V0.4.0
+* Extend HTML rendering (via `html: true` or a render block) to the remaining actions so server-rendered apps can use the gem end to end:
+  * `:show` renders `show.html.erb` with the record exposed as `@record`.
+  * `:new` builds a new record, authorizes it, and renders `new.html.erb` (or returns it as JSON in API mode).
+  * `:create`/`:update` redirect to the record on success and re-render the form (`new`/`edit`) with the errors on failure.
+* Render blocks now receive the records (`:index`), the record (`:show`/`:new`), or the record plus a `saved` flag (`:create`/`:update`) and override the auto-render.
+* Add shared examples and dummy-app coverage for each new HTML form (`simple crud for new`, `... with html`/`... with block` for show/new/create/update).
+* Extract the shared auth contexts (`simple crud without authenticated user`, `simple crud when not authorized`) to remove duplicated shared-example setup. Tested across Rails 6.1-8.1.
+
 ### V0.3.0
 * Support server-rendered (HTML) apps: `:index` can render an ERB template via `html: true` (exposing the paginated records as `@records`) or a render block that receives the records, while still honoring pagination.
 * Allow a custom record finder on `:show`, `:update` and `:destroy` via `finder:` (a `Proc`/`lambda` invoked with the controller's params, or a `Symbol` naming a class method on the model). Defaults to `klass.find(params[:id])` and still returns `not_found` when no record is found.

@@ -24,6 +24,10 @@ class DummyModelPolicy
     check_user
   end
 
+  def new?
+    check_user
+  end
+
   def destroy?
     check_user
   end

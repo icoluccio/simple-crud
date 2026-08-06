@@ -94,6 +94,7 @@ simple_crud_for :show
 simple_crud_for :index
 simple_crud_for :create
 simple_crud_for :destroy
+simple_crud_for :new
 ```
 
 Each method supports different options, as in:
@@ -105,7 +106,7 @@ simple_crud_for :index, paginate: false, authorize: false, serializer: CustomSer
 - Authorize: whether it should check authorization via the configured authorization adapter (Pundit by default)
 - Authenticate: whether it should use Devise to check for a current_user
 - Serializer: specify a particular serializer you should use
-- Html: only valid for `:index`. Renders the action's ERB template (`index.html.erb`) instead of JSON, exposing the paginated records to the view as `@records`. Only meaningful in controllers that render templates
+- Html: renders the action's ERB template instead of JSON (valid for `:index`, `:show`, `:new`, `:create` and `:update`). Only meaningful in controllers that render templates
 - Finder: only valid for `:show`, `:update` and `:destroy`. A `Proc`/`lambda` (invoked with the controller's params) or a `Symbol` naming a class method on the model, used to look up the record instead of `klass.find(params[:id])`
 - Scope: only valid for `:index`. A `Proc`/`lambda` taking `current_user` (plus the controller's `params` if it takes a second argument) that returns the relation to list, overriding the default `policy_scope`
 - Raise_on_invalid: only valid for `:create` and `:update`. Keeps the strict `create!`/`update!` semantics (raising on invalid input) instead of returning `422` with the validation errors
@@ -252,17 +253,31 @@ end
 ```
 
 #### HTML
-For server-rendered apps, `:index` can render an ERB template instead of JSON. Pass `html: true` to render the template named after the action (`models/index.html.erb`); the paginated records are exposed to the view as `@records`. Pagination still applies (or use `paginate: false`), so be sure the controller can render templates (e.g. `ActionController::Base`).
+For server-rendered apps, `html: true` renders the action's ERB template instead of JSON, so be sure the controller can render templates (e.g. `ActionController::Base`). Behavior per action:
+
+- `:index` renders `index.html.erb` with the paginated records exposed as `@records` (pagination still applies, or use `paginate: false`).
+- `:show` renders `show.html.erb` with the record exposed as `@record` (custom `finder:` still applies).
+- `:new` builds a new record, authorizes it, and renders `new.html.erb` with it exposed as `@record`.
+- `:create` saves and redirects to the created record on success, or re-renders `new.html.erb` (with `@record` and its errors) on failure.
+- `:update` saves and redirects to the record on success, or re-renders `edit.html.erb` on failure.
 
 ```ruby
 simple_crud_for :index, html: true
+simple_crud_for :show, html: true
+simple_crud_for :new, html: true
+simple_crud_for :create, html: true
+simple_crud_for :update, html: true
 ```
 
-Or pass a block that receives the records and renders explicitly, overriding the auto-render:
+Or pass a block that renders explicitly, overriding the auto-render. The block receives the records for `:index`, the record for `:show`/`:new`, or the record plus a saved flag for `:create`/`:update`:
 
 ```ruby
 simple_crud_for :index do |records|
   render :index, locals: { models: records }
+end
+
+simple_crud_for :create do |record, saved|
+  saved ? redirect_to(record) : render(:new, locals: { model: record })
 end
 ```
 
@@ -293,9 +308,17 @@ end
 The `create` and `update` examples now also cover the `422` response with validation errors (skipped when `raise_on_invalid: true`). Controllers using the new options can include their dedicated examples too:
 
 ```ruby
+include_examples 'simple crud for new'                    # the :new action
 include_examples 'simple crud for index with html'       # html: true
 include_examples 'simple crud for index with block'      # render block
 include_examples 'simple crud for index with scope'      # scope: ->(user) { ... }
+include_examples 'simple crud for show with html'        # html: true on :show
+include_examples 'simple crud for show with block'       # render block on :show
+include_examples 'simple crud for new with html'         # html: true on :new
+include_examples 'simple crud for new with block'        # render block on :new
+include_examples 'simple crud for create with html'      # html: true on :create
+include_examples 'simple crud for create with block'     # render block on :create
+include_examples 'simple crud for update with html'      # html: true on :update
 include_examples 'simple crud for show with finder'      # finder on :show
 include_examples 'simple crud for update with finder'    # finder on :update
 include_examples 'simple crud for destroy with finder'   # finder on :destroy
