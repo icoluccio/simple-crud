@@ -1,5 +1,11 @@
 ## Change log
 
+### V0.5.0
+* Add a `build:` option to `:new` and `:create` for building owner-scoped or nested records (`current_user.classrooms.build`, `@classroom.assignments.build`). The lambda runs with the controller as `self`; `:create` assigns the permitted params to the built record before saving.
+* Add HTML mode to `:destroy`: `html: true` redirects to the collection on success (re-rendering `show.html.erb` if a callback aborts the destroy), and a render block receives `(record, destroyed)`.
+* Document the `authenticate`/`authorize` coupling: authorization only runs when `authenticate: true`, so non-Devise apps must define `authenticate_user!` and `current_user` for `authorize: true` to do anything.
+* Add shared examples and dummy coverage for `build:` and HTML destroy (`simple crud for new/create with build`, `simple crud for destroy with html/block`). Tested across Rails 6.1-8.1.
+
 ### V0.4.0
 * Extend HTML rendering (via `html: true` or a render block) to the remaining actions so server-rendered apps can use the gem end to end:
   * `:show` renders `show.html.erb` with the record exposed as `@record`.

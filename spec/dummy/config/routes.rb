@@ -59,4 +59,16 @@ Rails.application.routes.draw do
   namespace :html_update do
     resources :dummy_models, only: :update
   end
+
+  namespace :html_destroy do
+    resources :dummy_models, only: :destroy
+  end
+
+  namespace :block_destroy do
+    resources :dummy_models, only: :destroy
+  end
+
+  namespace :build do
+    resources :dummy_models, only: %i[new create]
+  end
 end
