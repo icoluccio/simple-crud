@@ -2,7 +2,7 @@
 
 shared_examples 'simple crud for index' do
   describe 'GET #index' do
-    let(:created_models) { create_records(model_class, 10, {}) }
+    let(:created_models) { create_records(model_class, 10, model_attributes) }
 
     before { created_models }
 
