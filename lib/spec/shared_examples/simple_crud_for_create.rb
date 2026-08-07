@@ -59,7 +59,7 @@ shared_examples 'simple crud for create' do
         end
 
         if check_html(:create)
-          include_examples 'simple crud renders template', :new
+          include_examples 'simple crud renders template', :new, -> { invalid_status }
         else
           it 'responds with unprocessable entity' do
             expect(response).to have_http_status(unprocessable_status)

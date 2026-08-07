@@ -107,7 +107,8 @@ simple_crud_for :index, paginate: false, authorize: false, serializer: CustomSer
 - Authenticate: whether it should use Devise to check for a current_user
 - Serializer: specify a particular serializer you should use
 - Html: renders the action's ERB template instead of JSON (valid for `:index`, `:show`, `:new`, `:create`, `:update` and `:destroy`). Only meaningful in controllers that render templates
-- Finder: only valid for `:show`, `:update` and `:destroy`. A `Proc`/`lambda` (invoked with the controller's params) or a `Symbol` naming a class method on the model, used to look up the record instead of `klass.find(params[:id])`
+- Scope: only valid for `:index`. A `Proc`/`lambda` taking `current_user` (plus the controller's `params` if it takes a second argument) that returns the relation to list, overriding the default `policy_scope`
+- Finder: only valid for `:show`, `:update` and `:destroy`. A `Proc`/`lambda` (invoked with the controller's params) or a `Symbol` naming a class method on the model, used to look up the record instead of `klass.find(params[:id])`. The shared examples honor it too: base `:show`/`:update`/`:destroy` examples look records up by `config.finder_key` when a finder is configured
 - Scope: only valid for `:index`. A `Proc`/`lambda` taking `current_user` (plus the controller's `params` if it takes a second argument) that returns the relation to list, overriding the default `policy_scope`
 - Build: only valid for `:new` and `:create`. A `Proc`/`lambda` that builds the record (invoked with the controller as `self`, so `current_user`, `params` and any instance variables are available), for building nested or owner-scoped records like `current_user.classrooms.build`. `:create` then assigns the permitted params to the built record before saving
 - Raise_on_invalid: only valid for `:create` and `:update`. Keeps the strict `create!`/`update!` semantics (raising on invalid input) instead of returning `422` with the validation errors
@@ -371,6 +372,9 @@ SimpleCrud::RSpec.configure do |config|
   # (params.require(:classroom).permit(:name)); wrap request bodies under the
   # model's params key instead of posting flat params.
   config.params_key = :classroom
+
+  # Re-render the form with a 422 on validation failure (instead of 200).
+  config.invalid_status = :unprocessable_entity
 
   # Pundit policy and serializer class lookup.
   config.policy_class = ->(klass) { "#{klass}Policy".constantize }

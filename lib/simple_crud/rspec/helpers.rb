@@ -24,6 +24,11 @@ module SimpleCrud
         define_method("check_#{option}") { |method| get_option(method, option) }
       end
 
+      %i[owner_association required_attribute required_error finder_key params_key invalid_status
+         unauthenticated_status assert_html_template].each do |setting|
+        define_method(setting) { resolve(config.public_send(setting)) }
+      end
+
       def model_class
         described_class.to_s.split('::')
                        .last.sub('Controller', '').singularize.underscore
@@ -66,28 +71,16 @@ module SimpleCrud
         instance_exec(&config.authenticate)
       end
 
-      def owner_association
-        resolve(config.owner_association)
-      end
-
       def owner_foreign_key
         :"#{owner_association}_id"
       end
 
-      def required_attribute
-        resolve(config.required_attribute)
-      end
-
-      def required_error
-        resolve(config.required_error)
-      end
-
-      def finder_key
-        resolve(config.finder_key)
-      end
-
-      def params_key
-        resolve(config.params_key)
+      # The params that identify a record for the given action, using the
+      # configured finder_key when the action has a custom finder.
+      def record_param(action, record, not_found: false)
+        key = check_finder(action) ? finder_key : :id
+        value = not_found ? "nonexistent-#{key}" : record.public_send(key)
+        { key => value }
       end
 
       # Wraps a request body under the model's strong-params key when
@@ -95,14 +88,6 @@ module SimpleCrud
       def body_params(attrs)
         key = params_key
         key ? { key => attrs } : attrs
-      end
-
-      def unauthenticated_status
-        resolve(config.unauthenticated_status)
-      end
-
-      def assert_html_template
-        resolve(config.assert_html_template)
       end
 
       def policy_class_object

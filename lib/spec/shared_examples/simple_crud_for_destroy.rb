@@ -3,7 +3,9 @@
 shared_examples 'simple crud for destroy' do
   describe 'DELETE #destroy' do
     context 'without authenticated user' do
-      subject!(:req) { delete :destroy, params: { id: 1 }, format: request_format(:destroy) }
+      subject!(:req) do
+        delete :destroy, params: record_param(:destroy, nil, not_found: true), format: request_format(:destroy)
+      end
 
       include_examples 'unauthorized when not logged in' if check_authenticate(:destroy)
     end
@@ -14,7 +16,7 @@ shared_examples 'simple crud for destroy' do
 
         before do
           make_policies_fail(:destroy)
-          delete :destroy, params: { id: model.id }, format: request_format(:destroy)
+          delete :destroy, params: record_param(:destroy, model), format: request_format(:destroy)
         end
 
         it 'fails with forbidden' do
@@ -28,7 +30,7 @@ shared_examples 'simple crud for destroy' do
 
       before do
         model
-        delete :destroy, params: { id: model.id }, format: request_format(:destroy)
+        delete :destroy, params: record_param(:destroy, model), format: request_format(:destroy)
       end
 
       if check_html(:destroy)
@@ -48,7 +50,7 @@ shared_examples 'simple crud for destroy' do
 
       before do
         model
-        delete :destroy, params: { id: model.id + 13 }, format: request_format(:destroy)
+        delete :destroy, params: record_param(:destroy, nil, not_found: true), format: request_format(:destroy)
       end
 
       it 'responds with not found status' do
@@ -63,7 +65,7 @@ shared_examples 'simple crud for destroy' do
         before do
           model
           make_policies_fail(:destroy)
-          delete :destroy, params: { id: model.id }, format: request_format(:destroy)
+          delete :destroy, params: record_param(:destroy, model), format: request_format(:destroy)
         end
 
         it 'responds with forbidden status' do

@@ -83,4 +83,8 @@ Rails.application.routes.draw do
   namespace :nested do
     resources :dummy_models, only: %i[create update]
   end
+
+  namespace :invalid_status do
+    resources :dummy_models, only: :create
+  end
 end

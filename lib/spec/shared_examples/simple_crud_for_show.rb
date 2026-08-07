@@ -9,14 +9,14 @@ shared_examples 'simple crud for show' do
     end
 
     context 'without authenticated user' do
-      subject!(:req) { get :show, params: { id: model.id }, format: request_format(:show) }
+      subject!(:req) { get :show, params: record_param(:show, model), format: request_format(:show) }
 
       include_examples 'unauthorized when not logged in' if check_authenticate(:show)
     end
 
     describe 'when the model exists' do
       include_context 'with authenticated user'
-      let(:show_params) { { id: model.id } }
+      let(:show_params) { record_param(:show, model) }
 
       before do
         show_request
@@ -41,7 +41,7 @@ shared_examples 'simple crud for show' do
 
     describe 'when the model does not exist' do
       include_context 'with authenticated user'
-      let(:show_params) { { id: -1 } }
+      let(:show_params) { record_param(:show, nil, not_found: true) }
 
       before do
         show_request

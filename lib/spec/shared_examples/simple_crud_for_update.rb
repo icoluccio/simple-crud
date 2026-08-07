@@ -4,7 +4,8 @@ shared_examples 'simple crud for update' do
   describe 'PUT #update' do
     context 'without authenticated user' do
       subject!(:req) do
-        put :update, params: body_params(params_for(model_class)).merge(id: model.id), format: request_format(:update)
+        put :update, params: body_params(params_for(model_class)).merge(record_param(:update, model)),
+                     format: request_format(:update)
       end
 
       include_examples 'unauthorized when not logged in' if check_authenticate(:update)
@@ -16,7 +17,8 @@ shared_examples 'simple crud for update' do
 
         before do
           make_policies_fail(:update)
-          put :update, params: body_params(model_params).merge(id: model.id), format: request_format(:update)
+          put :update, params: body_params(model_params).merge(record_param(:update, model)),
+                       format: request_format(:update)
         end
 
         it 'fails with forbidden' do
@@ -27,10 +29,12 @@ shared_examples 'simple crud for update' do
 
     context 'when successfully updating an model' do
       include_context 'with authenticated user' if check_authenticate(:update)
+      let(:update_params) { body_params(model_params).merge(record_param(:update, model)) }
+      let(:update_attributes) { model_params.merge(record_param(:update, model).except(:id)) }
 
       before do
         model
-        put :update, params: body_params(model_params).merge(id: model.id), format: request_format(:update)
+        put :update, params: update_params, format: request_format(:update)
       end
 
       if check_html(:update)
@@ -47,7 +51,7 @@ shared_examples 'simple crud for update' do
         end
 
         it 'updates an model with valid attributes' do
-          expect(model_class_object.last).to have_attributes(model_params)
+          expect(model_class_object.last).to have_attributes(update_attributes)
         end
       end
     end
@@ -55,7 +59,7 @@ shared_examples 'simple crud for update' do
     context 'when updating a model that doesn\'t exist' do
       include_context 'with authenticated user'
 
-      before { put :update, params: { id: 1 }, format: request_format(:update) }
+      before { put :update, params: record_param(:update, nil, not_found: true), format: request_format(:update) }
 
       it 'response with 404 status code' do
         expect(response).to have_http_status(:not_found)
@@ -73,12 +77,12 @@ shared_examples 'simple crud for update' do
         before do
           model
           put :update, params: body_params({ required_attribute => nil, owner_foreign_key => current_user.id })
-                               .merge(id: model.id),
+                               .merge(record_param(:update, model)),
                        format: request_format(:update)
         end
 
         if check_html(:update)
-          include_examples 'simple crud renders template', :edit
+          include_examples 'simple crud renders template', :edit, -> { invalid_status }
         else
           it 'responds with unprocessable entity' do
             expect(response).to have_http_status(unprocessable_status)
