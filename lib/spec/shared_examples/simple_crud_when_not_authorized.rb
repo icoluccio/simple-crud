@@ -7,7 +7,7 @@ shared_examples 'simple crud when not authorized' do |action, verb, request_para
 
       before do
         make_policies_fail(action)
-        send(verb, action, params: request_params)
+        send(verb, action, params: with_route_params(request_params))
       end
 
       it 'fails with forbidden' do

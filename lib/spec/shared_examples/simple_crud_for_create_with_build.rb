@@ -5,7 +5,7 @@ shared_examples 'simple crud for create with build' do
     include_context 'with authenticated user'
 
     before do
-      post :create, params: body_params({ name: 'Built' })
+      post :create, params: with_route_params(body_params({ name: 'Built' }))
     end
 
     it 'creates the record owned by the current user' do

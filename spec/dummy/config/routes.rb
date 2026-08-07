@@ -87,4 +87,10 @@ Rails.application.routes.draw do
   namespace :invalid_status do
     resources :dummy_models, only: :create
   end
+
+  namespace :nested_route do
+    resources :classrooms, only: [], param: :slug do
+      resources :dummy_models, param: :slug, only: %i[show create destroy]
+    end
+  end
 end

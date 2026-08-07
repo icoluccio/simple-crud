@@ -7,7 +7,7 @@ shared_examples 'simple crud for destroy with finder' do
     context 'when the model exists' do
       before do
         model
-        delete :destroy, params: { finder_key => model.public_send(finder_key) }
+        delete :destroy, params: with_route_params(finder_key => model.public_send(finder_key))
       end
 
       it 'responds with ok status' do

@@ -373,6 +373,10 @@ SimpleCrud::RSpec.configure do |config|
   # model's params key instead of posting flat params.
   config.params_key = :classroom
 
+  # Nested resources (/classrooms/:classroom_slug/assignments): extra params
+  # (e.g. the parent slug) added to every request.
+  config.route_params = -> { { classroom_slug: model.classroom_slug } }
+
   # Re-render the form with a 422 on validation failure (instead of 200).
   config.invalid_status = :unprocessable_entity
 

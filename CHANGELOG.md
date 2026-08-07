@@ -7,6 +7,7 @@
 * Infer `html: true` in the metadata when a block is passed to `simple_crud_for` (unless `html` is set explicitly), so block-form server-rendered actions are asserted as HTML by the shared examples instead of JSON. JSON-rendering blocks can pass `html: false` explicitly.
 * Make the base `:show`/`:update`/`:destroy` examples honor a custom finder: they look records up by `finder_key` when the action has a `finder:`, so slug-routed shows work out of the box.
 * Add `invalid_status` (default `:ok`) so apps that re-render the form with a `422` on validation failure can assert that instead of `200`.
+* Add `route_params` (default `{}`) so nested resources (`/classrooms/:classroom_slug/assignments`) can have the parent slug added to every request, and stop merging the owner foreign key into create/update bodies when the model has no owner association.
 * Add `params_key` (default `nil`) so apps using nested strong params (`params.require(:classroom).permit(...)`) can have the shared examples wrap create/update request bodies under the model's params key instead of posting flat params.
 * Add `unauthenticated_status` (default `:unauthorized`, so redirect-based auth apps can expect a `302` instead) and `assert_html_template` (default `true`, so apps whose rendered template name doesn't match the action can drop the `render_template` assertion).
 * Add `simple crud for new` to the standard set and extract the shared auth contexts (`simple crud without authenticated user`, `simple crud when not authorized`, `simple crud renders template`).

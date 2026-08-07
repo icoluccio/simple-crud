@@ -10,7 +10,7 @@ shared_examples 'simple crud for new' do
 
       before do
         make_policies_succeed(:new)
-        get :new, format: request_format(:new)
+        get :new, params: with_route_params({}), format: request_format(:new)
       end
 
       it 'responds with ok status' do

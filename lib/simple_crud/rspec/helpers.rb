@@ -75,6 +75,21 @@ module SimpleCrud
         :"#{owner_association}_id"
       end
 
+      # The owner association attributed to current_user, if the model has one.
+      def owner_params
+        owner_association ? { owner_foreign_key => current_user.id } : {}
+      end
+
+      # Extra params (e.g. a parent slug) added to every request, for nested
+      # resources like /classrooms/:classroom_slug/assignments.
+      def route_params
+        resolve(config.route_params)
+      end
+
+      def with_route_params(attrs)
+        route_params.merge(attrs)
+      end
+
       # The params that identify a record for the given action, using the
       # configured finder_key when the action has a custom finder.
       def record_param(action, record, not_found: false)

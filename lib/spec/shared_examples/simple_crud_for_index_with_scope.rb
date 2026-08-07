@@ -12,7 +12,7 @@ shared_examples 'simple crud for index with scope' do
     make_policies_succeed(:index)
     my_models
     other_models
-    get :index, params: request_params
+    get :index, params: with_route_params(request_params)
   end
 
   it 'returns only the scoped records' do

@@ -34,6 +34,7 @@ module SimpleCrud
         required_error: "Name can't be blank",
         finder_key: :slug,
         params_key: nil,
+        route_params: -> { {} },
         invalid_status: :ok,
         unauthenticated_status: :unauthorized,
         assert_html_template: true,

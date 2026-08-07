@@ -3,7 +3,9 @@
 shared_examples 'simple crud for create' do
   describe 'POST #create' do
     context 'without authenticated user' do
-      subject!(:req) { post :create, params: body_params(params_for(model_class)), format: request_format(:create) }
+      subject!(:req) do
+        post :create, params: with_route_params(body_params(params_for(model_class))), format: request_format(:create)
+      end
 
       include_examples 'unauthorized when not logged in' if check_authenticate(:create)
     end
@@ -14,7 +16,7 @@ shared_examples 'simple crud for create' do
 
         before do
           make_policies_fail(:create)
-          post :create, params: body_params(model_params), format: request_format(:create)
+          post :create, params: with_route_params(body_params(model_params)), format: request_format(:create)
         end
 
         it 'fails with forbidden' do
@@ -25,10 +27,10 @@ shared_examples 'simple crud for create' do
 
     context 'when successfully creating an article' do
       include_context 'with authenticated user' if check_authenticate(:create)
-      let(:create_params) { model_params.merge(owner_foreign_key => current_user.id) }
+      let(:create_params) { model_params.merge(owner_params) }
 
       before do
-        post :create, params: body_params(create_params), format: request_format(:create)
+        post :create, params: with_route_params(body_params(create_params)), format: request_format(:create)
       end
 
       if check_html(:create)
@@ -55,7 +57,7 @@ shared_examples 'simple crud for create' do
         include_context 'with authenticated user' if check_authenticate(:create)
 
         before do
-          post :create, params: body_params({ owner_foreign_key => current_user.id }), format: request_format(:create)
+          post :create, params: with_route_params(body_params(owner_params)), format: request_format(:create)
         end
 
         if check_html(:create)

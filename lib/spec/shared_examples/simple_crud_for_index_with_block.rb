@@ -6,7 +6,7 @@ shared_examples 'simple crud for index with block' do
 
     before do
       created_models
-      get :index, format: :html
+      get :index, params: with_route_params({}), format: :html
     end
 
     include_examples 'simple crud renders template', :index

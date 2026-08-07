@@ -4,7 +4,7 @@ shared_examples 'simple crud for destroy with block' do
   describe 'DELETE #destroy with a render block' do
     let!(:record) { model }
 
-    before { delete :destroy, params: { id: record.id } }
+    before { delete :destroy, params: with_route_params({ id: record.id }) }
 
     it 'passes the destroyed record to the block' do
       expect(response.parsed_body).to eq('destroyed' => true)

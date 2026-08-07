@@ -4,8 +4,8 @@ shared_examples 'simple crud for update' do
   describe 'PUT #update' do
     context 'without authenticated user' do
       subject!(:req) do
-        put :update, params: body_params(params_for(model_class)).merge(record_param(:update, model)),
-                     format: request_format(:update)
+        update_params = body_params(params_for(model_class)).merge(record_param(:update, model))
+        put :update, params: with_route_params(update_params), format: request_format(:update)
       end
 
       include_examples 'unauthorized when not logged in' if check_authenticate(:update)
@@ -17,7 +17,7 @@ shared_examples 'simple crud for update' do
 
         before do
           make_policies_fail(:update)
-          put :update, params: body_params(model_params).merge(record_param(:update, model)),
+          put :update, params: with_route_params(body_params(model_params).merge(record_param(:update, model))),
                        format: request_format(:update)
         end
 
@@ -34,7 +34,7 @@ shared_examples 'simple crud for update' do
 
       before do
         model
-        put :update, params: update_params, format: request_format(:update)
+        put :update, params: with_route_params(update_params), format: request_format(:update)
       end
 
       if check_html(:update)
@@ -59,7 +59,10 @@ shared_examples 'simple crud for update' do
     context 'when updating a model that doesn\'t exist' do
       include_context 'with authenticated user'
 
-      before { put :update, params: record_param(:update, nil, not_found: true), format: request_format(:update) }
+      before do
+        put :update, params: with_route_params(record_param(:update, nil, not_found: true)),
+                     format: request_format(:update)
+      end
 
       it 'response with 404 status code' do
         expect(response).to have_http_status(:not_found)
@@ -76,8 +79,8 @@ shared_examples 'simple crud for update' do
 
         before do
           model
-          put :update, params: body_params({ required_attribute => nil, owner_foreign_key => current_user.id })
-                               .merge(record_param(:update, model)),
+          put :update, params: with_route_params(body_params({ required_attribute => nil }.merge(owner_params))
+                                                         .merge(record_param(:update, model))),
                        format: request_format(:update)
         end
 

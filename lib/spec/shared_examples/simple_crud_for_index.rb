@@ -14,7 +14,7 @@ shared_examples 'simple crud for index' do
 
       before do
         make_policies_succeed(:index)
-        get :index, format: request_format(:index)
+        get :index, params: with_route_params({}), format: request_format(:index)
       end
 
       if check_html(:index)

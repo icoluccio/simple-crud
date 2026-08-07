@@ -32,6 +32,13 @@ describe SimpleCrud::RSpec do
       expect(body_params(name: 'x')).to eq(name: 'x')
     end
 
+    it 'omits owner params when there is no owner association', :aggregate_failures do
+      with_config_override(:owner_association, nil) do
+        expect(owner_params).to eq({})
+        expect(model_attributes).to eq({})
+      end
+    end
+
     it 'lets settings be overridden and restored', :aggregate_failures do
       original = config.required_attribute
 

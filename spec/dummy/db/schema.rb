@@ -12,10 +12,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20_260_806_000_000) do
+ActiveRecord::Schema.define(version: 20_260_807_000_000) do
   create_table 'dummy_models', force: :cascade do |t|
     t.string 'name'
     t.string 'slug'
+    t.string 'classroom_slug'
     t.integer 'something'
     t.integer 'user_id'
     t.index ['user_id'], name: 'index_dummy_models_on_user_id'
