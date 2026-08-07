@@ -132,13 +132,14 @@ module SimpleCrud
       end
 
       # Runs the block with a config setting temporarily overridden, restoring
-      # the original value afterwards. Useful when a controller's spec needs a
-      # different setting than the app-wide default.
+      # the original value afterwards (even if the block raises). Useful when
+      # a controller's spec needs a different setting than the app-wide default.
       def with_config_override(setting, value)
         config_instance = SimpleCrud::RSpec::Config.instance
         original = config_instance.public_send(setting)
         SimpleCrud::RSpec.configure { |c| c.public_send("#{setting}=", value) }
         yield
+      ensure
         SimpleCrud::RSpec.configure { |c| c.public_send("#{setting}=", original) }
       end
     end
