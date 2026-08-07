@@ -68,7 +68,7 @@ Rails.application.routes.draw do
     resources :dummy_models, only: :destroy
   end
 
-  namespace :build do
+  namespace :built do
     resources :dummy_models, only: %i[new create]
   end
 end
