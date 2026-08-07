@@ -31,4 +31,5 @@ require_relative '../spec/matchers/have_been_serialized_with'
 RSpec.configure do |config|
   config.extend SimpleCrud::RSpec::Helpers
   config.include SimpleCrud::RSpec::Helpers
+  config.include Response::JSONParser, type: :controller
 end
