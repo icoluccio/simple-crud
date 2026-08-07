@@ -27,6 +27,11 @@ describe SimpleCrud::RSpec do
       expect(config.assert_html_template).to be true
     end
 
+    it 'defaults to flat params', :aggregate_failures do
+      expect(config.params_key).to be_nil
+      expect(body_params(name: 'x')).to eq(name: 'x')
+    end
+
     it 'lets settings be overridden and restored', :aggregate_failures do
       original = config.required_attribute
 

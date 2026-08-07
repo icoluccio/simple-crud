@@ -371,6 +371,11 @@ SimpleCrud::RSpec.configure do |config|
   config.unauthenticated_status = :found
   config.assert_html_template = false
 
+  # Server-rendered apps usually use nested strong params
+  # (params.require(:classroom).permit(:name)); wrap request bodies under the
+  # model's params key instead of posting flat params.
+  config.params_key = :classroom
+
   # Pundit policy and serializer class lookup.
   config.policy_class = ->(klass) { "#{klass}Policy".constantize }
   config.serializer_class = ->(model) { "#{model.class}Serializer".constantize }

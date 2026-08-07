@@ -86,6 +86,17 @@ module SimpleCrud
         resolve(config.finder_key)
       end
 
+      def params_key
+        resolve(config.params_key)
+      end
+
+      # Wraps a request body under the model's strong-params key when
+      # params_key is configured (nested strong params), else passes it flat.
+      def body_params(attrs)
+        key = params_key
+        key ? { key => attrs } : attrs
+      end
+
       def unauthenticated_status
         resolve(config.unauthenticated_status)
       end
@@ -118,6 +129,17 @@ module SimpleCrud
 
       def resolve(value)
         value.is_a?(Proc) ? instance_exec(&value) : value
+      end
+
+      # Runs the block with a config setting temporarily overridden, restoring
+      # the original value afterwards. Useful when a controller's spec needs a
+      # different setting than the app-wide default.
+      def with_config_override(setting, value)
+        config_instance = SimpleCrud::RSpec::Config.instance
+        original = config_instance.public_send(setting)
+        SimpleCrud::RSpec.configure { |c| c.public_send("#{setting}=", value) }
+        yield
+        SimpleCrud::RSpec.configure { |c| c.public_send("#{setting}=", original) }
       end
     end
   end

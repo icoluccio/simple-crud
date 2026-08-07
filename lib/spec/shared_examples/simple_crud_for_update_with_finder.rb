@@ -6,11 +6,8 @@ shared_examples 'simple crud for update with finder' do
 
     context 'when successfully updating a model' do
       let(:update_params) do
-        {
-          finder_key => model.public_send(finder_key),
-          required_attribute => 'Updated',
-          owner_foreign_key => current_user.id
-        }
+        body_params(required_attribute => 'Updated', owner_foreign_key => current_user.id)
+          .merge(finder_key => model.public_send(finder_key))
       end
 
       before do

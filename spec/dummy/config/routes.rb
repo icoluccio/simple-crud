@@ -79,4 +79,8 @@ Rails.application.routes.draw do
   namespace :html_scoped do
     resources :dummy_models, only: :index
   end
+
+  namespace :nested do
+    resources :dummy_models, only: %i[create update]
+  end
 end

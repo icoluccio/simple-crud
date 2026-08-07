@@ -4,7 +4,7 @@ shared_examples 'simple crud for update' do
   describe 'PUT #update' do
     context 'without authenticated user' do
       subject!(:req) do
-        put :update, params: params_for(model_class).merge(id: model.id), format: request_format(:update)
+        put :update, params: body_params(params_for(model_class)).merge(id: model.id), format: request_format(:update)
       end
 
       include_examples 'unauthorized when not logged in' if check_authenticate(:update)
@@ -16,7 +16,7 @@ shared_examples 'simple crud for update' do
 
         before do
           make_policies_fail(:update)
-          put :update, params: model_params.merge(id: model.id), format: request_format(:update)
+          put :update, params: body_params(model_params).merge(id: model.id), format: request_format(:update)
         end
 
         it 'fails with forbidden' do
@@ -30,7 +30,7 @@ shared_examples 'simple crud for update' do
 
       before do
         model
-        put :update, params: model_params.merge(id: model.id), format: request_format(:update)
+        put :update, params: body_params(model_params).merge(id: model.id), format: request_format(:update)
       end
 
       if check_html(:update)
@@ -72,7 +72,8 @@ shared_examples 'simple crud for update' do
 
         before do
           model
-          put :update, params: { id: model.id, required_attribute => nil, owner_foreign_key => current_user.id },
+          put :update, params: body_params({ required_attribute => nil, owner_foreign_key => current_user.id })
+                               .merge(id: model.id),
                        format: request_format(:update)
         end
 
