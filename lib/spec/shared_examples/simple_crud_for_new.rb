@@ -18,9 +18,7 @@ shared_examples 'simple crud for new' do
       end
 
       if check_html(:new)
-        it 'renders the new template' do
-          expect(response).to render_template(:new)
-        end
+        include_examples 'simple crud renders template', :new
       else
         it 'returns a blank record as json' do
           expect(response_body['id']).to be_nil

@@ -77,10 +77,7 @@ shared_examples 'simple crud for update' do
         end
 
         if check_html(:update)
-          it 're-renders the edit template', :aggregate_failures do
-            expect(response).to have_http_status(:ok)
-            expect(response).to render_template(:edit)
-          end
+          include_examples 'simple crud renders template', :edit
         else
           it 'responds with unprocessable entity' do
             expect(response).to have_http_status(unprocessable_status)

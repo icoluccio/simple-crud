@@ -59,10 +59,7 @@ shared_examples 'simple crud for create' do
         end
 
         if check_html(:create)
-          it 're-renders the new template', :aggregate_failures do
-            expect(response).to have_http_status(:ok)
-            expect(response).to render_template(:new)
-          end
+          include_examples 'simple crud renders template', :new
         else
           it 'responds with unprocessable entity' do
             expect(response).to have_http_status(unprocessable_status)

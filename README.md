@@ -365,6 +365,12 @@ SimpleCrud::RSpec.configure do |config|
   config.required_attribute = :title
   config.required_error = "Title can't be blank"
 
+  # Redirect-based apps: unauthenticated requests get a redirect, not a 401.
+  # And if the rendered template name doesn't match the action, drop the
+  # render_template assertion.
+  config.unauthenticated_status = :found
+  config.assert_html_template = false
+
   # Pundit policy and serializer class lookup.
   config.policy_class = ->(klass) { "#{klass}Policy".constantize }
   config.serializer_class = ->(model) { "#{model.class}Serializer".constantize }

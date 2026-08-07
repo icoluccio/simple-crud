@@ -86,6 +86,14 @@ module SimpleCrud
         resolve(config.finder_key)
       end
 
+      def unauthenticated_status
+        resolve(config.unauthenticated_status)
+      end
+
+      def assert_html_template
+        resolve(config.assert_html_template)
+      end
+
       def policy_class_object
         instance_exec(model_class_object, &config.policy_class)
       end

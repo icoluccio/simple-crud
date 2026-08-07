@@ -12,11 +12,19 @@ describe SimpleCrud::RSpec do
   end
 
   describe SimpleCrud::RSpec::Config do
-    it 'falls back to defaults for unset settings', :aggregate_failures do
+    it 'defaults the owner and finder settings', :aggregate_failures do
       expect(config.owner_association).to eq(:user)
+      expect(config.finder_key).to eq(:slug)
+    end
+
+    it 'defaults the model validation settings', :aggregate_failures do
       expect(config.required_attribute).to eq(:name)
       expect(config.required_error).to eq("Name can't be blank")
-      expect(config.finder_key).to eq(:slug)
+    end
+
+    it 'defaults the html and status settings', :aggregate_failures do
+      expect(config.unauthenticated_status).to eq(:unauthorized)
+      expect(config.assert_html_template).to be true
     end
 
     it 'lets settings be overridden and restored', :aggregate_failures do

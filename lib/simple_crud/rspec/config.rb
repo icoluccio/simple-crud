@@ -33,6 +33,8 @@ module SimpleCrud
         required_attribute: :name,
         required_error: "Name can't be blank",
         finder_key: :slug,
+        unauthenticated_status: :unauthorized,
+        assert_html_template: true,
         policy_class: ->(klass) { "#{klass}Policy".constantize },
         serializer_class: ->(model) { "#{model.class}_serializer".classify.constantize }
       }.freeze

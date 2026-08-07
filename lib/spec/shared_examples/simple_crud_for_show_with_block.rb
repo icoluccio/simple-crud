@@ -6,9 +6,6 @@ shared_examples 'simple crud for show with block' do
 
     before { get :show, params: { id: record.id }, format: :html }
 
-    it 'renders the show template', :aggregate_failures do
-      expect(response).to have_http_status(:ok)
-      expect(response).to render_template(:show)
-    end
+    include_examples 'simple crud renders template', :show
   end
 end

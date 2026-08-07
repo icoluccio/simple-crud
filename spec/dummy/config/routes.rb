@@ -71,4 +71,12 @@ Rails.application.routes.draw do
   namespace :built do
     resources :dummy_models, only: %i[new create]
   end
+
+  namespace :redirect_auth do
+    resources :dummy_models, only: :index
+  end
+
+  namespace :html_scoped do
+    resources :dummy_models, only: :index
+  end
 end

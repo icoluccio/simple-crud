@@ -18,10 +18,7 @@ shared_examples 'simple crud for index' do
       end
 
       if check_html(:index)
-        it 'renders the index template', :aggregate_failures do
-          expect(response).to have_http_status(:ok)
-          expect(response).to render_template(:index)
-        end
+        include_examples 'simple crud renders template', :index
       elsif check_paginate(:index)
         it 'renders paginated models correctly serialized' do
           expect(response_body['page']).to have_been_serialized_with(model_serializer)

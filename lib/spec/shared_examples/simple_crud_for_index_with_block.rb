@@ -9,9 +9,6 @@ shared_examples 'simple crud for index with block' do
       get :index, format: :html
     end
 
-    it 'renders the index template', :aggregate_failures do
-      expect(response).to have_http_status(:ok)
-      expect(response).to render_template(:index)
-    end
+    include_examples 'simple crud renders template', :index
   end
 end

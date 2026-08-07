@@ -27,9 +27,7 @@ shared_examples 'simple crud for show' do
       end
 
       if check_html(:show)
-        it 'renders the show template' do
-          expect(response).to render_template(:show)
-        end
+        include_examples 'simple crud renders template', :show
       else
         it 'returns the asked model' do
           expect(response_body['id']).to eq(model.id)
