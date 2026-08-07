@@ -9,7 +9,7 @@ shared_examples 'simple crud for create with build' do
     end
 
     it 'creates the record owned by the current user' do
-      expect(model_class_object.last.user).to eq(current_user)
+      expect(model_class_object.last.public_send(owner_association)).to eq(current_user)
     end
   end
 end

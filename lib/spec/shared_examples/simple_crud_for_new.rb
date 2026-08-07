@@ -10,15 +10,21 @@ shared_examples 'simple crud for new' do
 
       before do
         make_policies_succeed(:new)
-        get :new
+        get :new, format: request_format(:new)
       end
 
       it 'responds with ok status' do
         expect(response).to have_http_status(:ok)
       end
 
-      it 'returns a blank record as json' do
-        expect(response_body['id']).to be_nil
+      if check_html(:new)
+        it 'renders the new template' do
+          expect(response).to render_template(:new)
+        end
+      else
+        it 'returns a blank record as json' do
+          expect(response_body['id']).to be_nil
+        end
       end
     end
   end

@@ -7,7 +7,7 @@ shared_examples 'simple crud for new with build' do
     before { get :new }
 
     it 'builds the record owned by the current user' do
-      expect(response_body['user_id']).to eq(current_user.id)
+      expect(response_body[owner_foreign_key.to_s]).to eq(current_user.id)
     end
   end
 end

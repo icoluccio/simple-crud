@@ -1,0 +1,47 @@
+# frozen_string_literal: true
+
+require 'spec_helper'
+
+describe SimpleCrud::RSpec do
+  let(:config) { SimpleCrud::RSpec::Config.instance }
+
+  describe '.configure' do
+    it 'yields the config instance' do
+      expect { |b| described_class.configure(&b) }.to yield_with_args(config)
+    end
+  end
+
+  describe SimpleCrud::RSpec::Config do
+    it 'falls back to defaults for unset settings', :aggregate_failures do
+      expect(config.owner_association).to eq(:user)
+      expect(config.required_attribute).to eq(:name)
+      expect(config.required_error).to eq("Name can't be blank")
+      expect(config.finder_key).to eq(:slug)
+    end
+
+    it 'lets settings be overridden and restored', :aggregate_failures do
+      original = config.required_attribute
+
+      SimpleCrud::RSpec.configure { |c| c.required_attribute = :title }
+      expect(config.required_attribute).to eq(:title)
+
+      SimpleCrud::RSpec.configure { |c| c.required_attribute = original }
+      expect(config.required_attribute).to eq(:name)
+    end
+  end
+
+  describe SimpleCrud::RSpec::Helpers do
+    it 'resolves plain settings as-is' do
+      expect(resolve(config.owner_association)).to eq(:user)
+    end
+
+    it 'resolves callable settings in the example context' do
+      original = config.required_attribute
+
+      SimpleCrud::RSpec.configure { |c| c.required_attribute = -> { :title } }
+      expect(required_attribute).to eq(:title)
+
+      SimpleCrud::RSpec.configure { |c| c.required_attribute = original }
+    end
+  end
+end

@@ -7,7 +7,7 @@ shared_examples 'simple crud for show with finder' do
     context 'when the model exists' do
       before do
         model
-        get :show, params: { slug: model.slug }
+        get :show, params: { finder_key => model.public_send(finder_key) }
       end
 
       it 'responds with ok status' do

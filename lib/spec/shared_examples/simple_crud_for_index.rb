@@ -2,7 +2,7 @@
 
 shared_examples 'simple crud for index' do
   describe 'GET #index' do
-    let(:created_models) { create_list(model_class, 10) }
+    let(:created_models) { create_records(model_class, 10, {}) }
 
     before { created_models }
 
@@ -11,12 +11,18 @@ shared_examples 'simple crud for index' do
 
     context 'with authenticated user' do
       include_context 'with authenticated user' if check_authenticate(:index)
+
       before do
         make_policies_succeed(:index)
-        get :index
+        get :index, format: request_format(:index)
       end
 
-      if check_paginate(:index)
+      if check_html(:index)
+        it 'renders the index template', :aggregate_failures do
+          expect(response).to have_http_status(:ok)
+          expect(response).to render_template(:index)
+        end
+      elsif check_paginate(:index)
         it 'renders paginated models correctly serialized' do
           expect(response_body['page']).to have_been_serialized_with(model_serializer)
         end

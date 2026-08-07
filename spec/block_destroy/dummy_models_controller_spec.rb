@@ -2,6 +2,6 @@
 
 require 'spec_helper'
 
-describe BlockDestroy::DummyModelsController, type: :request do
+describe BlockDestroy::DummyModelsController, type: :controller do
   include_examples 'simple crud for destroy with block'
 end

@@ -2,6 +2,6 @@
 
 require 'spec_helper'
 
-describe Block::DummyModelsController, type: :request do
+describe Block::DummyModelsController, type: :controller do
   include_examples 'simple crud for index with block'
 end

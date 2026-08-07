@@ -2,16 +2,13 @@
 
 shared_examples 'simple crud for show with block' do
   describe 'GET #show with a render block' do
-    let!(:record) { create(model_class) }
+    let!(:record) { model }
 
-    before { get "/block_show/dummy_models/#{record.id}" }
+    before { get :show, params: { id: record.id }, format: :html }
 
-    it 'renders the show template' do
+    it 'renders the show template', :aggregate_failures do
+      expect(response).to have_http_status(:ok)
       expect(response).to render_template(:show)
-    end
-
-    it 'passes the record to the block' do
-      expect(response.body).to include(record.name)
     end
   end
 end

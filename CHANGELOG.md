@@ -1,5 +1,12 @@
 ## Change log
 
+### V0.6.0
+* Make the RSpec shared examples a reusable testing library via `SimpleCrud::RSpec.configure`. Every app-specific assumption is now a configurable setting with a gem-convention default, so apps on a different stack than the gem's (Devise-JWT + FactoryBot + Pundit + AMS) can adopt them: `authenticate`/`current_user`/`other_user` (sign-in and user creation), `create_record`/`create_records`/`params_for` (model and param building), `owner_association`/`required_attribute`/`required_error` (model-specific fixtures and assertions), `finder_key` (custom-finder param), and `policy_class`/`serializer_class`.
+* The base examples are now HTML-aware: they branch on the `html:` option and assert the rendered template/redirect instead of a JSON body, so one set of examples per action works for both API and server-rendered controllers. Removed the now-redundant `simple crud for ... with html` variants.
+* The HTML/block/finder/scope/build examples are controller-agnostic: they issue requests by action name instead of hardcoded routes, so they work for namespaced and nested controllers without editing paths.
+* Add `simple crud for new` to the standard set and extract the shared auth contexts (`simple crud without authenticated user`, `simple crud when not authorized`).
+* Document adoption in the README with a `SimpleCrud::RSpec.configure` example. Tested across Rails 6.1-8.1.
+
 ### V0.5.0
 * Add a `build:` option to `:new` and `:create` for building owner-scoped or nested records (`current_user.classrooms.build`, `@classroom.assignments.build`). The lambda runs with the controller as `self`; `:create` assigns the permitted params to the built record before saving.
 * Add HTML mode to `:destroy`: `html: true` redirects to the collection on success (re-rendering `show.html.erb` if a callback aborts the destroy), and a render block receives `(record, destroyed)`.

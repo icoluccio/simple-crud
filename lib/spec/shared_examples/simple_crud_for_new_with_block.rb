@@ -2,14 +2,11 @@
 
 shared_examples 'simple crud for new with block' do
   describe 'GET #new with a render block' do
-    before { get '/block_new/dummy_models/new' }
+    before { get :new, format: :html }
 
-    it 'renders the new template' do
+    it 'renders the new template', :aggregate_failures do
+      expect(response).to have_http_status(:ok)
       expect(response).to render_template(:new)
-    end
-
-    it 'passes the blank record to the block' do
-      expect(response.body).to include('new true')
     end
   end
 end

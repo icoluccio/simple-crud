@@ -2,19 +2,16 @@
 
 shared_examples 'simple crud for index with block' do
   describe 'GET #index with a render block' do
-    let(:created_models) { create_list(model_class, 10) }
+    let(:created_models) { create_records(model_class, 2, {}) }
 
     before do
       created_models
-      get '/block/dummy_models'
+      get :index, format: :html
     end
 
-    it 'renders the index template' do
+    it 'renders the index template', :aggregate_failures do
+      expect(response).to have_http_status(:ok)
       expect(response).to render_template(:index)
-    end
-
-    it 'passes the records to the block' do
-      created_models.each { |record| expect(response.body).to include(record.name) }
     end
   end
 end

@@ -2,6 +2,6 @@
 
 require 'spec_helper'
 
-describe HtmlUpdate::DummyModelsController, type: :request do
-  include_examples 'simple crud for update with html'
+describe HtmlUpdate::DummyModelsController, type: :controller do
+  include_examples 'simple crud for update'
 end

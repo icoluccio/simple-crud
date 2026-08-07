@@ -2,6 +2,6 @@
 
 require 'spec_helper'
 
-describe HtmlDestroy::DummyModelsController, type: :request do
-  include_examples 'simple crud for destroy with html'
+describe HtmlDestroy::DummyModelsController, type: :controller do
+  include_examples 'simple crud for destroy'
 end

@@ -1,15 +1,14 @@
 # frozen_string_literal: true
 
 shared_examples 'simple crud for index with scope' do
-  let(:user) { create(:user) }
-  let(:other_user) { create(:user) }
-  let(:my_models) { create_list(:dummy_model, 2, user: user) }
-  let(:other_models) { create_list(:dummy_model, 3, user: other_user) }
+  let(:user) { current_user }
+  let(:other_user) { resolve(config.other_user) }
+  let(:my_models) { create_records(model_class, 2, owner_association => user) }
+  let(:other_models) { create_records(model_class, 3, owner_association => other_user) }
   let(:request_params) { {} }
 
   before do
-    headers = { 'Accept' => 'application/json', 'Content-Type' => 'application/json' }
-    request.headers.merge!(Devise::JWT::TestHelpers.auth_headers(headers, user))
+    authenticate_request
     make_policies_succeed(:index)
     my_models
     other_models

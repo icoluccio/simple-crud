@@ -5,7 +5,13 @@ shared_examples 'simple crud for update with finder' do
     include_context 'with authenticated user'
 
     context 'when successfully updating a model' do
-      let(:update_params) { { slug: model.slug, something: 42, user_id: current_user.id } }
+      let(:update_params) do
+        {
+          finder_key => model.public_send(finder_key),
+          required_attribute => 'Updated',
+          owner_foreign_key => current_user.id
+        }
+      end
 
       before do
         model
@@ -17,18 +23,10 @@ shared_examples 'simple crud for update with finder' do
       end
 
       it 'updates the model' do
-        expect(model.reload.something).to eq(42)
+        expect(model.reload.public_send(required_attribute)).to eq('Updated')
       end
     end
 
-    context 'when the model does not exist' do
-      before do
-        put :update, params: { slug: 'nonexistent-slug', name: 'x', user_id: current_user.id }
-      end
-
-      it 'responds with not found status' do
-        expect(response).to have_http_status(:not_found)
-      end
-    end
+    include_examples 'simple crud not found with finder', :put, :update
   end
 end

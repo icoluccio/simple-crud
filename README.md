@@ -324,30 +324,54 @@ describe V1::Backoffice::AuthorsController do
 end
 ```
 
-The `create` and `update` examples now also cover the `422` response with validation errors (skipped when `raise_on_invalid: true`). Controllers using the new options can include their dedicated examples too:
+The `create` and `update` examples cover the `422` response with validation errors (skipped when `raise_on_invalid: true`), and all base examples adapt to `html: true` controllers (asserting the rendered template/redirect instead of JSON). Controllers using the extra options can include their dedicated examples too:
 
 ```ruby
 include_examples 'simple crud for new'                    # the :new action
-include_examples 'simple crud for index with html'       # html: true
 include_examples 'simple crud for index with block'      # render block
 include_examples 'simple crud for index with scope'      # scope: ->(user) { ... }
-include_examples 'simple crud for show with html'        # html: true on :show
 include_examples 'simple crud for show with block'       # render block on :show
-include_examples 'simple crud for new with html'         # html: true on :new
 include_examples 'simple crud for new with block'        # render block on :new
-include_examples 'simple crud for create with html'      # html: true on :create
 include_examples 'simple crud for create with block'     # render block on :create
-include_examples 'simple crud for update with html'      # html: true on :update
-include_examples 'simple crud for destroy with html'     # html: true on :destroy
 include_examples 'simple crud for destroy with block'    # render block on :destroy
-include_examples 'simple crud for new with build'        # build: -> { ... } on :new
-include_examples 'simple crud for create with build'     # build: -> { ... } on :create
 include_examples 'simple crud for show with finder'      # finder on :show
 include_examples 'simple crud for update with finder'    # finder on :update
 include_examples 'simple crud for destroy with finder'   # finder on :destroy
+include_examples 'simple crud for new with build'        # build: -> { ... } on :new
+include_examples 'simple crud for create with build'     # build: -> { ... } on :create
 ```
 
 It's not needed to specify paginate: true and such, since the shared examples will use the configuration that was originally passed to simple_crud_for
+
+#### Adopting the shared examples
+The shared examples assume the gem's own stack by default (Devise-JWT authentication, FactoryBot, Pundit, ActiveModel Serializers). If your app differs, configure them once in `spec/spec_helper.rb` (or `rails_helper.rb`):
+
+```ruby
+SimpleCrud::RSpec.configure do |config|
+  # How the current user (and a secondary "other user") is built.
+  config.current_user = -> { User.create!(email: 'user@example.com', password: 'secret') }
+  config.other_user = -> { User.create!(email: 'other@example.com', password: 'secret') }
+
+  # How to sign the current user in for a request (no Devise-JWT here).
+  config.authenticate = -> { request.session[:user_id] = current_user.id }
+
+  # How records and create/update params are built (no FactoryBot here).
+  config.create_record = ->(klass, attributes) { klass.create!(attributes) }
+  config.create_records = ->(klass, count, attributes) { count.times.map { klass.create!(attributes) } }
+  config.params_for = ->(klass) { klass.new.attributes.slice('title') }
+
+  # The owner association and the validation this app's models enforce.
+  config.owner_association = :instructor
+  config.required_attribute = :title
+  config.required_error = "Title can't be blank"
+
+  # Pundit policy and serializer class lookup.
+  config.policy_class = ->(klass) { "#{klass}Policy".constantize }
+  config.serializer_class = ->(model) { "#{model.class}Serializer".constantize }
+end
+```
+
+Each setting has a sensible default, so you only override what differs. Callable settings (`current_user`, `authenticate`, `create_record`, `create_records`, `params_for`, `policy_class`, `serializer_class`) run in the example-group context, so they can call `request`, `create`, `current_user`, etc. The examples are controller-agnostic (they issue requests by action name, not hardcoded paths), so they work for namespaced and nested controllers alike.
 
 ## Contributing
 
