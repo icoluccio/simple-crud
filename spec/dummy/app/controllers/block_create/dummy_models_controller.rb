@@ -2,7 +2,7 @@
 
 module BlockCreate
   class DummyModelsController < HtmlModes::BaseController
-    simple_crud_for :create, authenticate: false, authorize: false do |record, saved|
+    simple_crud_for :create, html: false, authenticate: false, authorize: false do |record, saved|
       if saved
         render json: { saved: true, id: record.id }
       else

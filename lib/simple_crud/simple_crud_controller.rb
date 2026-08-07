@@ -23,6 +23,7 @@ module SimpleCrudController
   ### A block given to simple_crud_for renders explicitly: it receives the records for :index,
   ### the record for :show/:new, or the record and a saved flag for :create/:update/:destroy
   def simple_crud_for(method, parameters = {}, &block)
+    parameters[:html] = true if block && !parameters.key?(:html)
     parameters = parameters_with_defaults(parameters)
     klass = simple_crud_controller_model
     check_valid_method(method)

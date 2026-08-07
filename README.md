@@ -274,7 +274,7 @@ simple_crud_for :update, html: true
 simple_crud_for :destroy, html: true
 ```
 
-Or pass a block that renders explicitly, overriding the auto-render. The block receives the records for `:index`, the record for `:show`/`:new`, or the record plus a saved flag for `:create`/`:update`/`:destroy`:
+Or pass a block that renders explicitly, overriding the auto-render. The block receives the records for `:index`, the record for `:show`/`:new`, or the record plus a saved flag for `:create`/`:update`/`:destroy`. Passing a block also implies `html: true` for the shared examples (so a server-rendered block is asserted as HTML); if your block renders JSON instead, pass `html: false` explicitly:
 
 ```ruby
 simple_crud_for :index do |records|
@@ -283,10 +283,6 @@ end
 
 simple_crud_for :create do |record, saved|
   saved ? redirect_to(record) : render(:new, locals: { model: record })
-end
-
-simple_crud_for :destroy do |_record, destroyed|
-  redirect_to root_path if destroyed
 end
 ```
 
