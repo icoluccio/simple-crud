@@ -35,15 +35,7 @@ describe SimpleCrud::Authorization::ActionPolicyAdapter do
   end
 
   describe '#authorize' do
-    it 'passes for a record the policy allows' do
-      expect { adapter.authorize(controller, ActionPolicyTestRecord.new(1)) }.not_to raise_error
-    end
-
-    it 'raises for a record the policy denies' do
-      expect do
-        adapter.authorize(controller, ActionPolicyTestRecord.new(2))
-      end.to raise_error(ActionPolicy::Unauthorized)
-    end
+    include_examples 'authorization adapter #authorize', ActionPolicyTestRecord, ActionPolicy::Unauthorized
   end
 
   describe '#policy_defined?' do

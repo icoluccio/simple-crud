@@ -11,11 +11,15 @@ module SimpleCrud
     class WillPaginateAdapter
       include Adapter
 
-      def paginate(controller, klass, options)
+      def paginate(controller, relation, options)
+        records = paginated_records(controller, relation, options)
+        controller.render({ json: records }.merge(options))
+      end
+
+      def paginated_records(controller, relation, _options)
         page = controller.params[:page] || 1
         per_page = controller.params[:per_page] || WillPaginate.per_page
-        records = klass.paginate(page: page, per_page: per_page)
-        controller.render({ json: records }.merge(options))
+        relation.paginate(page: page, per_page: per_page)
       end
     end
   end

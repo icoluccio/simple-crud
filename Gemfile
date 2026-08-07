@@ -28,6 +28,7 @@ group :development, :test do
   gem 'overcommit', '~> 0.72'
   gem 'pagy', '~> 43.0', require: false
   gem 'pundit', '~> 2.5'
+  gem 'rails-controller-testing', '~> 1.0'
   gem 'rake', '~> 13.4'
   gem 'rspec', '~> 3.13'
   gem 'rspec-rails', '>= 6.0', '< 9'

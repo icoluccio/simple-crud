@@ -36,13 +36,7 @@ describe SimpleCrud::Authorization::CanCanCanAdapter do
   end
 
   describe '#authorize' do
-    it 'passes for a record the ability grants' do
-      expect { adapter.authorize(controller, CanCanCanTestRecord.new(1)) }.not_to raise_error
-    end
-
-    it 'raises for a record the ability denies' do
-      expect { adapter.authorize(controller, CanCanCanTestRecord.new(2)) }.to raise_error(CanCan::AccessDenied)
-    end
+    include_examples 'authorization adapter #authorize', CanCanCanTestRecord, CanCan::AccessDenied
   end
 
   describe '#policy_defined?' do

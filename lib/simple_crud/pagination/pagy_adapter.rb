@@ -13,9 +13,14 @@ module SimpleCrud
       # the pre-rename 43.4.x, so pick whichever key the loaded Pagy expects.
       MAX_LIMIT_KEY = Gem::Version.new(Pagy::VERSION) >= Gem::Version.new('43.5.0') ? :max_limit : :client_max_limit
 
-      def paginate(controller, klass, options)
-        _pagy, records = controller.send(:pagy, klass.all, MAX_LIMIT_KEY => 100)
+      def paginate(controller, relation, options)
+        records = paginated_records(controller, relation, options)
         controller.render({ json: records }.merge(options))
+      end
+
+      def paginated_records(controller, relation, _options)
+        _pagy, records = controller.send(:pagy, relation, MAX_LIMIT_KEY => 100)
+        records
       end
     end
   end

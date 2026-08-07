@@ -22,27 +22,17 @@ describe 'pagination adapters', type: :request do
     SimpleCrud::Config.pagination_adapter = original_adapter
   end
 
-  it 'paginates with Kaminari' do
-    SimpleCrud::Config.pagination_adapter = SimpleCrud::Pagination::KaminariAdapter.new
+  {
+    'Kaminari' => [SimpleCrud::Pagination::KaminariAdapter, { per_page: 5 }],
+    'will_paginate' => [SimpleCrud::Pagination::WillPaginateAdapter, { per_page: 5 }],
+    'Pagy' => [SimpleCrud::Pagination::PagyAdapter, { limit: 5 }]
+  }.each do |name, (adapter_class, pagination_params)|
+    it "paginates with #{name}" do
+      SimpleCrud::Config.pagination_adapter = adapter_class.new
 
-    get '/dummy_models', params: { page: 2, per_page: 5 }, headers: auth_headers
+      get '/dummy_models', params: { page: 2 }.merge(pagination_params), headers: auth_headers
 
-    expect(response.parsed_body.size).to eq(5)
-  end
-
-  it 'paginates with will_paginate' do
-    SimpleCrud::Config.pagination_adapter = SimpleCrud::Pagination::WillPaginateAdapter.new
-
-    get '/dummy_models', params: { page: 2, per_page: 5 }, headers: auth_headers
-
-    expect(response.parsed_body.size).to eq(5)
-  end
-
-  it 'paginates with Pagy' do
-    SimpleCrud::Config.pagination_adapter = SimpleCrud::Pagination::PagyAdapter.new
-
-    get '/dummy_models', params: { page: 2, limit: 5 }, headers: auth_headers
-
-    expect(response.parsed_body.size).to eq(5)
+      expect(response.parsed_body.size).to eq(5)
+    end
   end
 end
