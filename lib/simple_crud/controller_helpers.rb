@@ -4,7 +4,7 @@ module SimpleCrud
   # Class-level helpers shared by the CRUD lambdas defined in SimpleCrudController.
   module ControllerHelpers
     def maybe_authorize(controller, record, parameters)
-      return unless parameters[:authorize] && parameters[:authenticate]
+      return unless parameters[:authorize]
 
       SimpleCrud::Config.authorization_adapter.authorize(controller, record)
     end
@@ -56,7 +56,8 @@ module SimpleCrud
     end
 
     def call_scope(scope, controller)
-      user = controller.current_user
+      user_method = SimpleCrud::Config.user_method
+      user = controller.respond_to?(user_method) ? controller.public_send(user_method) : nil
       return scope.call(user) if scope.arity == 1
 
       scope.call(user, controller.params)
@@ -69,17 +70,21 @@ module SimpleCrud
     end
 
     def find_record(klass, controller, parameters)
-      finder = parameters[:finder]
-      record = if finder.nil?
-                 klass.find(controller.params[:id])
-               elsif finder.respond_to?(:call)
-                 finder.call(controller.params)
-               else
-                 klass.send(finder, controller.params)
-               end
+      record = lookup_record(klass, controller, parameters)
       raise ActiveRecord::RecordNotFound, "couldn't find #{klass}" if record.nil?
+      unless record.is_a?(ActiveRecord::Base)
+        raise ActiveRecord::RecordNotFound, "#{klass} finder must return a single record"
+      end
 
       record
+    end
+
+    def lookup_record(klass, controller, parameters)
+      finder = parameters[:finder]
+      return klass.find(controller.params[:id]) if finder.nil?
+      return klass.send(finder, controller.params) unless finder.respond_to?(:call)
+
+      finder.call(controller.params)
     end
 
     def persist_and_render(controller, record, parameters, options, persist, &block)
@@ -89,11 +94,20 @@ module SimpleCrud
       controller.instance_variable_set(:@record, record)
       return controller.instance_exec(record, saved, &block) if block
 
-      saved ? controller.redirect_to(options[:redirect]) : controller.render(options[:failure_template])
+      if saved
+        controller.redirect_to(redirect_target(controller, record, options[:redirect]))
+      else
+        controller.render(options[:failure_template])
+      end
     end
 
     def save_and_render(controller, record, parameters, options, persist, &block)
-      persist_and_render(controller, record, parameters, options.merge(redirect: record), persist, &block)
+      persist_and_render(controller, record, parameters,
+                         options.merge(redirect: parameters[:redirect] || record), persist, &block)
+    end
+
+    def redirect_target(controller, record, target)
+      target.is_a?(Proc) ? controller.instance_exec(record, &target) : target
     end
 
     def render_persisted(controller, record, saved, options)

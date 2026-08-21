@@ -106,7 +106,7 @@ module SimpleCrudController
       authenticate_user! if parameters[:authenticate]
       requested = SimpleCrudController.find_record(klass, self, parameters)
       SimpleCrudController.maybe_authorize(self, requested, parameters)
-      options = { status: :ok, failure_template: :show, redirect: klass }
+      options = { status: :ok, failure_template: :show, redirect: parameters[:redirect] || klass }
       persist = ->(bang:) { bang ? requested.destroy! : requested.destroy }
       SimpleCrudController.persist_and_render(self, requested, parameters, options, persist, &block)
     end
@@ -117,7 +117,7 @@ module SimpleCrudController
   end
 
   def check_valid_method(method)
-    throw 'invalid method' unless %i[show index create update destroy new].include? method
+    raise ArgumentError, 'invalid method' unless %i[show index create update destroy new].include? method
   end
 
   def check_policies(parameters)
@@ -126,7 +126,7 @@ module SimpleCrudController
     model = simple_crud_controller_model
     return if SimpleCrud::Config.authorization_adapter.policy_defined?(model)
 
-    throw "no authorization policy configured for #{model}"
+    raise ArgumentError, "no authorization policy configured for #{model}"
   end
 
   def check_serializer(parameters)
@@ -135,6 +135,6 @@ module SimpleCrudController
     serializer_name = parameters[:serializer].to_s
     return if Kernel.const_defined?(serializer_name)
 
-    throw "create a valid serializer with name #{serializer_name}"
+    raise ArgumentError, "create a valid serializer with name #{serializer_name}"
   end
 end

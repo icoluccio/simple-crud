@@ -29,8 +29,17 @@ require_relative '../spec/shared_examples/simple_crud_for_create_with_build'
 require_relative '../spec/shared_examples/authorization_adapter_authorize'
 require_relative '../spec/matchers/have_been_serialized_with'
 
-RSpec.configure do |config|
-  config.extend SimpleCrud::RSpec::Helpers
-  config.include SimpleCrud::RSpec::Helpers
-  config.include Response::JSONParser, type: :controller
+module SimpleCrud
+  # Opt-in wiring for the shared examples: see .install!
+  module RSpec
+    # Opt-in wiring: call from your spec support after requiring this file.
+    # extend wires definition-time helpers (check_html...), include runtime ones (model...).
+    def self.install!
+      ::RSpec.configure do |config|
+        config.extend Helpers
+        config.include Helpers
+        config.include Response::JSONParser, type: :controller
+      end
+    end
+  end
 end

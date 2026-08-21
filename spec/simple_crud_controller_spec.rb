@@ -14,10 +14,10 @@ describe SimpleCrudController do
       expect { DummyModelsController.check_policies(authorize: true) }.not_to raise_error
     end
 
-    it 'throws when no matching policy exists' do
+    it 'raises when no matching policy exists' do
       expect do
         UnpoliceableThingsController.check_policies(authorize: true)
-      end.to raise_error(UncaughtThrowError)
+      end.to raise_error(ArgumentError)
     end
   end
 
@@ -32,10 +32,10 @@ describe SimpleCrudController do
       end.not_to raise_error
     end
 
-    it 'throws when no matching serializer exists' do
+    it 'raises when no matching serializer exists' do
       expect do
         DummyModelsController.check_serializer(serializer: 'NonExistentSerializer')
-      end.to raise_error(UncaughtThrowError)
+      end.to raise_error(ArgumentError)
     end
   end
 end

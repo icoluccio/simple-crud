@@ -52,6 +52,10 @@ Rails.application.routes.draw do
     resources :dummy_models, only: :create
   end
 
+  namespace :redirect do
+    resources :dummy_models, only: %i[create destroy]
+  end
+
   namespace :block_create do
     resources :dummy_models, only: :create
   end
