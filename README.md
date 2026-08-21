@@ -14,7 +14,10 @@ SimpleCrud
       - [Options](#options)
         - [Paginate](#paginate)
         - [Authorize](#authorize)
+        - [Authenticate](#authenticate)
         - [Serializer](#serializer)
+        - [HTML](#html)
+        - [Finder](#finder)
       - [Shared examples](#shared-examples)
   - [Contributing](#contributing)
   - [Releases](#releases)
@@ -64,7 +67,7 @@ Before SimpleCrud can be used, some boilerplate is needed. Add the following to 
 ```ruby
 include Pundit::Authorization
 include Wor::Paginate
-extend SimpleCrud
+extend SimpleCrudController
 
 before_action :set_params
 
@@ -91,6 +94,7 @@ simple_crud_for :show
 simple_crud_for :index
 simple_crud_for :create
 simple_crud_for :destroy
+simple_crud_for :new
 ```
 
 Each method supports different options, as in:
@@ -102,6 +106,12 @@ simple_crud_for :index, paginate: false, authorize: false, serializer: CustomSer
 - Authorize: whether it should check authorization via the configured authorization adapter (Pundit by default)
 - Authenticate: whether it should use Devise to check for a current_user
 - Serializer: specify a particular serializer you should use
+- Html: renders the action's ERB template instead of JSON (valid for `:index`, `:show`, `:new`, `:create`, `:update` and `:destroy`). Only meaningful in controllers that render templates
+- Scope: only valid for `:index`. A `Proc`/`lambda` taking `current_user` (plus the controller's `params` if it takes a second argument) that returns the relation to list, overriding the default `policy_scope`. The user is resolved via `SimpleCrud::Config.user_method` (`:current_user` by default; set it to e.g. `:current_admin`)
+- Finder: only valid for `:show`, `:update` and `:destroy`. A `Proc`/`lambda` (invoked with the controller's params) or a `Symbol` naming a class method on the model, used to look up the record instead of `klass.find(params[:id])`.
+- Build: only valid for `:new` and `:create`. A `Proc`/`lambda` that builds the record (invoked with the controller as `self`, so `current_user`, `params` and any instance variables are available), for building nested or owner-scoped records like `current_user.classrooms.build`. `:create` then assigns the permitted params to the built record before saving
+- Raise_on_invalid: only valid for `:create` and `:update`. Keeps the strict `create!`/`update!` semantics (raising on invalid input) instead of returning `422` with the validation errors
+- Redirect: only valid for HTML-mode `:create`, `:update` and `:destroy`. A `Proc`/`lambda` (called with the record) or a literal path used as the success redirect target. Defaults to the record (`:create`/`:update`) or the model's collection path (`:destroy`)
 
 You'll need a few things so they work correctly:
 
@@ -143,9 +153,10 @@ end
 
 SimpleCrud.configure { |config| config.pagination_adapter = MyPaginationAdapter.new }
 ```
-
 #### Authorize
 Authorization checks go through [Pundit](https://github.com/varvet/pundit) by default. Name the policy after the model plus `Policy`, e.g. `AuthorPolicy`, written as a regular Pundit policy:
+
+> **Note:** authorization runs whenever `authorize: true`, independently of `authenticate`. With no signed-in user the policy receives `nil` as the user, so write policies that tolerate it (e.g. `user.nil? ? false : ...`). Devise provides `authenticate_user!` and `current_user` for you; non-Devise apps must define a `current_user` (or point `SimpleCrud::Config.user_method` at their own method) for policies and `scope:` lambdas to receive the user.
 
 ```ruby
 class AuthorPolicy
@@ -159,8 +170,28 @@ class AuthorPolicy
   def show?
     user.present?
   end
+
+  class Scope
+    def initialize(user, scope)
+      @user = user
+      @scope = scope
+    end
+
+    # Used by :index to scope the listed records to the current user.
+    def resolve
+      @scope.where(user: @user)
+    end
+  end
 end
 
+```
+
+When `authorize: true`, the `:index` action paginates the Pundit `policy_scope` of the model (falling back to the full relation when no `Scope` is defined) instead of `klass.all`, so "only my records" scoping works out of the box. Override the scope per action with the `scope:` option, a callable that receives the user resolved via `SimpleCrud::Config.user_method` (`nil` when there is none, and `params` too when it takes a second argument):
+
+```ruby
+SimpleCrud.configure { |c| c.user_method = :current_admin } # non-Devise naming conventions
+simple_crud_for :index, scope: ->(user) { Model.visible_to(user) }
+simple_crud_for :index, scope: ->(user, params) { Model.where(status: params[:status]).visible_to(user) }
 ```
 
 Prefer CanCanCan or Action Policy instead? Both have adapters ready to go:
@@ -200,6 +231,13 @@ class MyAuthorizationAdapter
   def policy_defined?(model_class)
     Kernel.const_defined?("#{model_class}Policy")
   end
+
+  # Called when rendering :index with authorize: true. Must return the
+  # relation the current user is allowed to list. The default returns
+  # the full relation.
+  def policy_scope(controller, model_class)
+    model_class.all
+  end
 end
 
 SimpleCrud.configure do |config|
@@ -219,6 +257,58 @@ class AuthorSerializer < ActiveModel::Serializer
 end
 ```
 
+#### HTML
+For server-rendered apps, `html: true` renders the action's ERB template instead of JSON, so be sure the controller can render templates (e.g. `ActionController::Base`). Behavior per action:
+
+- `:index` renders `index.html.erb` with the paginated records exposed as `@records` (pagination still applies, or use `paginate: false`).
+- `:show` renders `show.html.erb` with the record exposed as `@record` (custom `finder:` still applies).
+- `:new` builds a new record, authorizes it, and renders `new.html.erb` with it exposed as `@record`.
+- `:create` saves and redirects to the created record on success, or re-renders `new.html.erb` (with `@record` and its errors) on failure.
+- `:update` saves and redirects to the record on success, or re-renders `edit.html.erb` on failure.
+- `:destroy` destroys and redirects to the collection (`redirect_to Model`) on success, or re-renders `show.html.erb` if a callback aborts the destroy.
+
+```ruby
+simple_crud_for :index, html: true
+simple_crud_for :show, html: true
+simple_crud_for :new, html: true
+simple_crud_for :create, html: true
+simple_crud_for :update, html: true
+simple_crud_for :destroy, html: true
+```
+
+Or pass a block that renders explicitly, overriding the auto-render. The block receives the records for `:index`, the record for `:show`/`:new`, or the record plus a saved flag for `:create`/`:update`/`:destroy`. Passing a block also implies `html: true` for the shared examples (so a server-rendered block is asserted as HTML); if your block renders JSON instead, pass `html: false` explicitly:
+
+```ruby
+simple_crud_for :index do |records|
+  render :index, locals: { models: records }
+end
+
+simple_crud_for :create do |record, saved|
+  saved ? redirect_to(record) : render(:new, locals: { model: record })
+end
+```
+
+#### Build
+`simple_crud_for :new` and `simple_crud_for :create` build the record with `klass.new`, which can't express owner-scoped or nested records (`current_user.classrooms.build`, `@classroom.assignments.build`). Pass a `build:` lambda; it runs with the controller as `self`, so `current_user`, `params` and any instance variables set by a `before_action` are available:
+
+```ruby
+simple_crud_for :new, build: -> { current_user.classrooms.build }
+simple_crud_for :create, build: -> { current_user.classrooms.build }
+```
+
+`:create` assigns the permitted params to the built record before saving, so the owner/parent association survives. `:update` keeps finding the record via the `finder:`.
+
+#### Finder
+By default records are looked up by primary key via `klass.find(params[:id])`. The `finder:` option on `:show`, `:update` and `:destroy` replaces that with any lookup you want: pretty URLs (`resources :posts, param: :slug`), tokens, composite keys, or scoping by a parent resource. Pass a `Proc`/`lambda` that maps the controller's `params` to a record, or a `Symbol` naming a class method on the model that takes the params:
+
+```ruby
+simple_crud_for :show, finder: ->(params) { Model.find_by!(token: params[:token]) }
+simple_crud_for :update, finder: :find_by_slug
+simple_crud_for :destroy, finder: ->(params) { current_user.models.find(params[:id]) }
+```
+
+When omitted it defaults to `klass.find(params[:id])`, and `not_found` is still returned whenever the finder finds no record.
+
 ### Shared examples
 While optional, using the included shared examples saves you from writing the standard test cases for the methods. You can even use them if you didn't use `simple_crud_for`, as a set of basic tests. To include them, just add `require 'simple_crud/rspec'` to your `rails_helper.rb` file and add the lines you need to your `*_spec.rb` files:
 ```ruby
@@ -233,7 +323,72 @@ describe V1::Backoffice::AuthorsController do
 end
 ```
 
+The `create` and `update` examples cover the `422` response with validation errors (skipped when `raise_on_invalid: true`), and all base examples adapt to `html: true` controllers (asserting the rendered template/redirect instead of JSON). Controllers using the extra options can include their dedicated examples too:
+
+```ruby
+include_examples 'simple crud for new'                    # the :new action
+include_examples 'simple crud for index with block'      # render block
+include_examples 'simple crud for index with scope'      # scope: ->(user) { ... }
+include_examples 'simple crud for show with block'       # render block on :show
+include_examples 'simple crud for new with block'        # render block on :new
+include_examples 'simple crud for create with block'     # render block on :create
+include_examples 'simple crud for destroy with block'    # render block on :destroy
+include_examples 'simple crud for show with finder'      # finder on :show
+include_examples 'simple crud for update with finder'    # finder on :update
+include_examples 'simple crud for destroy with finder'   # finder on :destroy
+include_examples 'simple crud for new with build'        # build: -> { ... } on :new
+include_examples 'simple crud for create with build'     # build: -> { ... } on :create
+```
+
 It's not needed to specify paginate: true and such, since the shared examples will use the configuration that was originally passed to simple_crud_for
+
+#### Adopting the shared examples
+The shared examples assume the gem's own stack by default (Devise-JWT authentication, FactoryBot, Pundit, ActiveModel Serializers). Wiring is opt-in: require the file and call `SimpleCrud::RSpec.install!` in `spec/spec_helper.rb` (or `rails_helper.rb`), then configure anything your app differs on:
+
+```ruby
+SimpleCrud::RSpec.configure do |config|
+  # How the current user (and a secondary "other user") is built.
+  config.current_user = -> { User.create!(email: 'user@example.com', password: 'secret') }
+  config.other_user = -> { User.create!(email: 'other@example.com', password: 'secret') }
+
+  # How to sign the current user in for a request (no Devise-JWT here).
+  config.authenticate = -> { request.session[:user_id] = current_user.id }
+
+  # How records and create/update params are built (no FactoryBot here).
+  config.create_record = ->(klass, attributes) { klass.create!(attributes) }
+  config.create_records = ->(klass, count, attributes) { count.times.map { klass.create!(attributes) } }
+  config.params_for = ->(klass) { klass.new.attributes.slice('title') }
+
+  # The owner association and the validation this app's models enforce.
+  config.owner_association = :instructor
+  config.required_attribute = :title
+  config.required_error = "Title can't be blank"
+
+  # Redirect-based apps: unauthenticated requests get a redirect, not a 401.
+  # And if the rendered template name doesn't match the action, drop the
+  # render_template assertion.
+  config.unauthenticated_status = :found
+  config.assert_html_template = false
+
+  # Server-rendered apps usually use nested strong params
+  # (params.require(:classroom).permit(:name)); wrap request bodies under the
+  # model's params key instead of posting flat params.
+  config.params_key = :classroom
+
+  # Nested resources (/classrooms/:classroom_slug/assignments): extra params
+  # (e.g. the parent slug) added to every request.
+  config.route_params = -> { { classroom_slug: model.classroom_slug } }
+
+  # Re-render the form with a 422 on validation failure (instead of 200).
+  config.invalid_status = :unprocessable_entity
+
+  # Pundit policy and serializer class lookup.
+  config.policy_class = ->(klass) { "#{klass}Policy".constantize }
+  config.serializer_class = ->(model) { "#{model.class}Serializer".constantize }
+end
+```
+
+Each setting has a sensible default, so you only override what differs. Callable settings (`current_user`, `authenticate`, `create_record`, `create_records`, `params_for`, `policy_class`, `serializer_class`) run in the example-group context, so they can call `request`, `create`, `current_user`, etc. The examples are controller-agnostic (they issue requests by action name, not hardcoded paths), so they work for namespaced and nested controllers alike. If you keep `assert_html_template` on (the default), add `gem 'rails-controller-testing'` for the `render_template` matcher.
 
 ## Contributing
 

@@ -7,6 +7,7 @@ describe DummyModelsController, type: :controller do
   include_examples 'simple crud for create'
   include_examples 'simple crud for index'
   include_examples 'simple crud for destroy'
+  include_examples 'simple crud for new'
 
   describe 'POST #create with invalid attributes' do
     include_context 'with authenticated user'

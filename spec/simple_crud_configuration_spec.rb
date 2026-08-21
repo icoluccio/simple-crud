@@ -18,24 +18,19 @@ describe SimpleCrud do
       expect { |b| described_class.configure(&b) }.to yield_with_args(SimpleCrud::Config)
     end
 
-    it 'lets a custom authorization adapter replace the Pundit default' do
-      original_adapter = SimpleCrud::Config.authorization_adapter
-      custom_adapter = instance_double(SimpleCrud::Authorization::PunditAdapter)
+    {
+      authorization_adapter: [SimpleCrud::Authorization::PunditAdapter, 'the Pundit default'],
+      pagination_adapter: [SimpleCrud::Pagination::WorPaginateAdapter, 'the wor-paginate default']
+    }.each do |adapter_name, (adapter_class, default_description)|
+      it "lets a custom #{adapter_name.to_s.sub('_adapter', '')} adapter replace #{default_description}" do
+        original_adapter = SimpleCrud::Config.public_send(adapter_name)
+        custom_adapter = instance_double(adapter_class)
 
-      described_class.configure { |config| config.authorization_adapter = custom_adapter }
-      expect(SimpleCrud::Config.authorization_adapter).to eq(custom_adapter)
+        described_class.configure { |config| config.public_send("#{adapter_name}=", custom_adapter) }
+        expect(SimpleCrud::Config.public_send(adapter_name)).to eq(custom_adapter)
 
-      SimpleCrud::Config.authorization_adapter = original_adapter
-    end
-
-    it 'lets a custom pagination adapter replace the wor-paginate default' do
-      original_adapter = SimpleCrud::Config.pagination_adapter
-      custom_adapter = instance_double(SimpleCrud::Pagination::WorPaginateAdapter)
-
-      described_class.configure { |config| config.pagination_adapter = custom_adapter }
-      expect(SimpleCrud::Config.pagination_adapter).to eq(custom_adapter)
-
-      SimpleCrud::Config.pagination_adapter = original_adapter
+        SimpleCrud::Config.public_send("#{adapter_name}=", original_adapter)
+      end
     end
   end
 
@@ -49,6 +44,10 @@ describe SimpleCrud do
     it 'requires #policy_defined? to be implemented' do
       expect { adapter.policy_defined?(nil) }.to raise_error(NotImplementedError)
     end
+
+    it 'defaults #policy_scope to the full relation' do
+      expect(adapter.policy_scope(nil, DummyModel).to_sql).to eq(DummyModel.all.to_sql)
+    end
   end
 
   describe SimpleCrud::Pagination::Adapter do
@@ -56,6 +55,10 @@ describe SimpleCrud do
 
     it 'requires #paginate to be implemented' do
       expect { adapter.paginate(nil, nil, nil) }.to raise_error(NotImplementedError)
+    end
+
+    it 'requires #paginated_records to be implemented' do
+      expect { adapter.paginated_records(nil, nil, nil) }.to raise_error(NotImplementedError)
     end
   end
 end

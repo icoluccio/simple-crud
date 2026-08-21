@@ -3,7 +3,10 @@
 shared_examples 'simple crud for destroy' do
   describe 'DELETE #destroy' do
     context 'without authenticated user' do
-      subject!(:req) { delete :destroy, params: { id: 1 } }
+      subject!(:req) do
+        delete :destroy, params: with_route_params(record_param(:destroy, nil, not_found: true)),
+                         format: request_format(:destroy)
+      end
 
       include_examples 'unauthorized when not logged in' if check_authenticate(:destroy)
     end
@@ -14,7 +17,7 @@ shared_examples 'simple crud for destroy' do
 
         before do
           make_policies_fail(:destroy)
-          delete :destroy, params: { id: model.id }
+          delete :destroy, params: with_route_params(record_param(:destroy, model)), format: request_format(:destroy)
         end
 
         it 'fails with forbidden' do
@@ -28,11 +31,18 @@ shared_examples 'simple crud for destroy' do
 
       before do
         model
-        delete :destroy, params: { id: model.id }
+        delete :destroy, params: with_route_params(record_param(:destroy, model)), format: request_format(:destroy)
       end
 
-      it 'response with 200 status code' do
-        expect(response).to have_http_status(:ok)
+      if check_html(:destroy)
+        it 'redirects to the collection and destroys the record', :aggregate_failures do
+          expect(response).to have_http_status(:found)
+          expect(model_class_object.exists?(model.id)).to be false
+        end
+      else
+        it 'response with 200 status code' do
+          expect(response).to have_http_status(:ok)
+        end
       end
     end
 
@@ -41,7 +51,8 @@ shared_examples 'simple crud for destroy' do
 
       before do
         model
-        delete :destroy, params: { id: model.id + 13 }
+        delete :destroy, params: with_route_params(record_param(:destroy, nil, not_found: true)),
+                         format: request_format(:destroy)
       end
 
       it 'responds with not found status' do
@@ -56,10 +67,10 @@ shared_examples 'simple crud for destroy' do
         before do
           model
           make_policies_fail(:destroy)
-          delete :destroy, params: { id: model.id }
+          delete :destroy, params: with_route_params(record_param(:destroy, model)), format: request_format(:destroy)
         end
 
-        it 'response with 200 status code' do
+        it 'responds with forbidden status' do
           expect(response).to have_http_status(:forbidden)
         end
       end

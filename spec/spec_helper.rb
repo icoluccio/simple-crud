@@ -13,6 +13,7 @@ require 'rspec/rails'
 require 'pundit/rspec'
 require 'wor/paginate/rspec'
 require 'simple_crud/rspec'
+SimpleCrud::RSpec.install!
 require 'devise'
 require 'devise/jwt/test_helpers'
 
