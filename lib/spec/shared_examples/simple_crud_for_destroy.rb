@@ -60,11 +60,13 @@ shared_examples 'simple crud for destroy' do
         expect(model_class_object.exists?(model.id)).to be true
       end
 
-      if check_html(:destroy)
-        include_examples 'simple crud renders template', :show
-      else
-        it 'responds with unprocessable entity' do
-          expect(response).to have_http_status(unprocessable_status)
+      unless check_block(:destroy)
+        if check_html(:destroy)
+          include_examples 'simple crud renders template', :show
+        else
+          it 'responds with unprocessable entity' do
+            expect(response).to have_http_status(unprocessable_status)
+          end
         end
       end
     end

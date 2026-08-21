@@ -61,20 +61,22 @@ shared_examples 'simple crud for create' do
           post :create, params: with_route_params(body_params(owner_params)), format: request_format(:create)
         end
 
-        if check_html(:create)
-          include_examples 'simple crud renders template', :new, -> { invalid_status }
-        else
-          it 'responds with unprocessable entity' do
-            expect(response).to have_http_status(unprocessable_status)
-          end
+        unless check_block(:create)
+          if check_html(:create)
+            include_examples 'simple crud renders template', :new, -> { invalid_status }
+          else
+            it 'responds with unprocessable entity' do
+              expect(response).to have_http_status(unprocessable_status)
+            end
 
-          it 'returns the validation errors' do
-            expect(response_body['errors']).to include(required_error)
+            it 'returns the validation errors' do
+              expect(response_body['errors']).to include(required_error)
+            end
           end
+        end
 
-          it 'does not create a model' do
-            expect(model_class_object.count).to be 0
-          end
+        it 'does not create a model' do
+          expect(model_class_object.count).to be 0
         end
       end
     end

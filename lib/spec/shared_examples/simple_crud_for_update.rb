@@ -91,15 +91,17 @@ shared_examples 'simple crud for update' do
                        format: request_format(:update)
         end
 
-        if check_html(:update)
-          include_examples 'simple crud renders template', :edit, -> { invalid_status }
-        else
-          it 'responds with unprocessable entity' do
-            expect(response).to have_http_status(unprocessable_status)
-          end
+        unless check_block(:update)
+          if check_html(:update)
+            include_examples 'simple crud renders template', :edit, -> { invalid_status }
+          else
+            it 'responds with unprocessable entity' do
+              expect(response).to have_http_status(unprocessable_status)
+            end
 
-          it 'returns the validation errors' do
-            expect(response_body['errors']).to include(required_error)
+            it 'returns the validation errors' do
+              expect(response_body['errors']).to include(required_error)
+            end
           end
         end
       end

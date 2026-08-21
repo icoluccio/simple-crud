@@ -24,6 +24,7 @@ module SimpleCrudController
   ### the record for :show/:new, or the record and a saved flag for :create/:update/:destroy
   def simple_crud_for(method, parameters = {}, &block)
     parameters[:html] = true if block && !parameters.key?(:html)
+    parameters[:block] = true if block
     parameters = parameters_with_defaults(parameters)
     klass = simple_crud_controller_model
     check_valid_method(method)
@@ -130,11 +131,9 @@ module SimpleCrudController
   end
 
   def check_serializer(parameters)
-    return if parameters[:serializer].blank?
+    name = parameters[:serializer].to_s
+    return if name.blank? || Kernel.const_defined?(name)
 
-    serializer_name = parameters[:serializer].to_s
-    return if Kernel.const_defined?(serializer_name)
-
-    raise ArgumentError, "create a valid serializer with name #{serializer_name}"
+    raise ArgumentError, "create a valid serializer with name #{name}"
   end
 end
