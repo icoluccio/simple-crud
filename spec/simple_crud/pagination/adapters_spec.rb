@@ -35,4 +35,38 @@ describe 'pagination adapters', type: :request do
       expect(response.parsed_body.size).to eq(5)
     end
   end
+
+  describe 'Kaminari edge cases' do
+    before { SimpleCrud::Config.pagination_adapter = SimpleCrud::Pagination::KaminariAdapter.new }
+
+    # Offset math must not trust string params: "5" * 2 == "55".
+    it 'paginates past page 2 when params arrive as strings' do
+      get '/dummy_models', params: { page: '3', per_page: '5' }, headers: auth_headers
+
+      expected_ids = DummyModel.offset(10).limit(5).pluck(:id)
+      expect(response.parsed_body.map { |record| record['id'] }).to match_array(expected_ids)
+    end
+
+    context 'with Kaminari.config.max_per_page set' do
+      let!(:original_max_per_page) { Kaminari.config.max_per_page }
+
+      before do
+        Kaminari.config.max_per_page = 8
+      end
+
+      after { Kaminari.config.max_per_page = original_max_per_page }
+
+      it 'caps per_page at the configured ceiling' do
+        get '/dummy_models', params: { page: 1, per_page: '100' }, headers: auth_headers
+
+        expect(response.parsed_body.size).to eq(8)
+      end
+    end
+
+    it 'falls back to page 1 for non-numeric page params' do
+      get '/dummy_models', params: { page: 'abc', per_page: '5' }, headers: auth_headers
+
+      expect(response.parsed_body.size).to eq(5)
+    end
+  end
 end

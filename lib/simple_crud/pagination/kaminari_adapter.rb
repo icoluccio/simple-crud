@@ -15,17 +15,25 @@ module SimpleCrud
         controller.render({ json: records }.merge(options))
       end
 
-      # Kaminari only defines `page` on the model class, not on relations, and
-      # will_paginate shadows `Relation#page` when both gems are loaded. Build
-      # the page scope explicitly so scoped relations paginate correctly.
+      # Manual page scope: will_paginate shadows Relation#page when both load.
       def paginated_records(controller, relation, _options)
-        page = controller.params[:page] || 1
-        per_page = controller.params[:per_page] || Kaminari.config.default_per_page
-        offset = per_page * (page.to_i.clamp(1, Float::INFINITY) - 1)
-        relation.limit(per_page).offset(offset).extending do
+        page = [controller.params[:page].to_i, 1].max
+        per_page = page_size(controller)
+
+        relation.limit(per_page).offset(per_page * (page - 1)).extending do
           include Kaminari::ActiveRecordRelationMethods
           include Kaminari::PageScopeMethods
         end
+      end
+
+      private
+
+      # Params arrive as strings: coerce before arithmetic or "5" * 2 == "55".
+      def page_size(controller)
+        size = (controller.params[:per_page] || Kaminari.config.default_per_page).to_i
+        size = [size, 1].max
+        size = [size, Kaminari.config.max_per_page].min if Kaminari.config.max_per_page
+        size
       end
     end
   end
