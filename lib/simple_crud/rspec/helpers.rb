@@ -122,6 +122,10 @@ module SimpleCrud
         instance_exec(model_class_object, &setting(:policy_class))
       end
 
+      def created_record_check
+        setting(:created_record_check)
+      end
+
       def model_serializer
         defined?(serializer) ? serializer : instance_exec(model, &setting(:serializer_class))
       end

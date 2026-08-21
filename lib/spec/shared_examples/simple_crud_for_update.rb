@@ -54,6 +54,13 @@ shared_examples 'simple crud for update' do
           expect(model_class_object.last).to have_attributes(update_attributes)
         end
       end
+
+      if created_record_check
+        it 'updates a record passing created_record_check', :aggregate_failures do
+          expect(model_class_object.last).to be_present
+          instance_exec(model_class_object.last, &created_record_check)
+        end
+      end
     end
 
     context 'when updating a model that doesn\'t exist' do

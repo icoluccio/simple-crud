@@ -47,8 +47,9 @@ shared_examples 'simple crud for create' do
         end
       end
 
-      it 'creates the record' do
+      it 'creates the record', :aggregate_failures do
         expect(model_class_object.count).to be 1
+        instance_exec(model_class_object.last, &created_record_check) if created_record_check
       end
     end
 

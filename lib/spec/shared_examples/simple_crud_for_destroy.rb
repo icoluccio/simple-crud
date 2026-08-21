@@ -46,6 +46,29 @@ shared_examples 'simple crud for destroy' do
       end
     end
 
+    context 'when destroying fails' do
+      include_context 'with authenticated user' if check_authenticate(:destroy)
+
+      before do
+        model
+        allow(model).to receive(:destroy).and_return(false)
+        allow(SimpleCrudController).to receive(:find_record).and_return(model)
+        delete :destroy, params: with_route_params(record_param(:destroy, model)), format: request_format(:destroy)
+      end
+
+      it 'keeps the record' do
+        expect(model_class_object.exists?(model.id)).to be true
+      end
+
+      if check_html(:destroy)
+        include_examples 'simple crud renders template', :show
+      else
+        it 'responds with unprocessable entity' do
+          expect(response).to have_http_status(unprocessable_status)
+        end
+      end
+    end
+
     context 'when ID is invalid' do
       include_context 'with authenticated user' if check_authenticate(:destroy)
 

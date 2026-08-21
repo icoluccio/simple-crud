@@ -40,7 +40,8 @@ module SimpleCrud
         unauthenticated_status: :unauthorized,
         assert_html_template: true,
         policy_class: ->(klass) { "#{klass}Policy".constantize },
-        serializer_class: ->(model) { "#{model.class}_serializer".classify.constantize }
+        serializer_class: ->(model) { "#{model.class}_serializer".classify.constantize },
+        created_record_check: nil
       }.freeze
 
       class << self
