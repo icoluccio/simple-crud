@@ -76,6 +76,10 @@ Rails.application.routes.draw do
     resources :dummy_models, only: %i[show destroy]
   end
 
+  namespace :block_json do
+    resources :dummy_models, only: %i[index show new]
+  end
+
   namespace :built do
     resources :dummy_models, only: %i[new create]
   end
