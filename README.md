@@ -323,7 +323,7 @@ describe V1::Backoffice::AuthorsController do
 end
 ```
 
-The `create` and `update` examples cover the `422` response with validation errors (skipped when `raise_on_invalid: true`, or whenever the action uses a render block, since the block owns its response shape), and all base examples adapt to `html: true` controllers (asserting the rendered template/redirect instead of JSON). Controllers using the extra options can include their dedicated examples too:
+The `create` and `update` examples cover the `422` response with validation errors (skipped when `raise_on_invalid: true`, or whenever the action uses a render block, since the block decides how the response is rendered), and all base examples adapt to `html: true` controllers (asserting the rendered template/redirect instead of JSON). Controllers using the extra options can include their dedicated examples too:
 
 ```ruby
 include_examples 'simple crud for new'                    # the :new action
