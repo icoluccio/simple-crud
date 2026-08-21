@@ -3,11 +3,21 @@
 module SimpleCrud
   module RSpec
     # Helpers available to the shared examples (and to apps that include
-    # them). Everything app-specific is delegated to SimpleCrud::RSpec::Config
-    # so it can be overridden without editing the examples.
+    # them). Settings resolve through the enclosing example group's
+    # `simple_crud:` metadata first, falling back to the app-wide
+    # SimpleCrud::RSpec::Config singleton.
     module Helpers
       def config
         SimpleCrud::RSpec::Config.instance
+      end
+
+      def simple_crud_settings
+        source = ::RSpec.current_example ? ::RSpec.current_example.metadata : metadata
+        source[:simple_crud] || {}
+      end
+
+      def setting(name)
+        simple_crud_settings.fetch(name) { config.public_send(name) }
       end
 
       def get_option(method, option)
@@ -25,8 +35,8 @@ module SimpleCrud
       end
 
       %i[owner_association required_attribute required_error finder_key params_key invalid_status
-         unauthenticated_status assert_html_template].each do |setting|
-        define_method(setting) { resolve(config.public_send(setting)) }
+         unauthenticated_status assert_html_template].each do |name|
+        define_method(name) { resolve(setting(name)) }
       end
 
       def model_class
@@ -43,20 +53,19 @@ module SimpleCrud
       end
 
       def model_attributes
-        association = resolve(config.owner_association)
-        association ? { association => current_user } : {}
+        resolve(setting(:model_attributes))
       end
 
       def create_record(klass, attributes)
-        instance_exec(klass, attributes, &config.create_record)
+        instance_exec(klass, attributes, &setting(:create_record))
       end
 
       def create_records(klass, count, attributes)
-        instance_exec(klass, count, attributes, &config.create_records)
+        instance_exec(klass, count, attributes, &setting(:create_records))
       end
 
       def params_for(klass)
-        instance_exec(klass, &config.params_for)
+        instance_exec(klass, &setting(:params_for))
       end
 
       def model_params
@@ -64,11 +73,15 @@ module SimpleCrud
       end
 
       def current_user
-        @current_user ||= instance_exec(&config.current_user)
+        @current_user ||= instance_exec(&setting(:current_user))
+      end
+
+      def other_user
+        @other_user ||= instance_exec(&setting(:other_user))
       end
 
       def authenticate_request
-        instance_exec(&config.authenticate)
+        instance_exec(&setting(:authenticate))
       end
 
       def owner_foreign_key
@@ -83,7 +96,7 @@ module SimpleCrud
       # Extra params (e.g. a parent slug) added to every request, for nested
       # resources like /classrooms/:classroom_slug/assignments.
       def route_params
-        resolve(config.route_params)
+        resolve(setting(:route_params))
       end
 
       def with_route_params(attrs)
@@ -106,11 +119,11 @@ module SimpleCrud
       end
 
       def policy_class_object
-        instance_exec(model_class_object, &config.policy_class)
+        instance_exec(model_class_object, &setting(:policy_class))
       end
 
       def model_serializer
-        defined?(serializer) ? serializer : instance_exec(model, &config.serializer_class)
+        defined?(serializer) ? serializer : instance_exec(model, &setting(:serializer_class))
       end
 
       def make_policies_fail(method)

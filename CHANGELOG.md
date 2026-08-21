@@ -1,5 +1,12 @@
 ## Change log
 
+### V0.3.1
+
+Shared examples configuration:
+* Every setting can be overridden per controller or per example via `simple_crud:` RSpec metadata. Metadata takes precedence over `SimpleCrud::RSpec.configure` and the defaults, and all reads happen at example runtime, so per-resource tweaks need no around hooks, no global mutation and no restore logic.
+* New `model_attributes` setting (default: `{ owner_association => current_user }`) decides how records are built for the examples, so multi-key (`{ user:, classroom: }`), non-user-owned (`{ classroom: classroom }`) or owner-less models work without editing the shared examples.
+* Dedicated examples (`*_with_block`, `*_with_build`, `*_with_scope`) no longer assume the gem's dummy app: request params derive from `params_for`/`owner_params`, authentication wraps conditionally on the action's `authenticate:` option, and render-block actions are asserted on status and persistence effects only (a block's response body is app-defined by definition).
+
 ### V0.3.0
 
 Server-rendered (HTML) support:

@@ -359,8 +359,11 @@ SimpleCrud::RSpec.configure do |config|
   config.create_records = ->(klass, count, attributes) { count.times.map { klass.create!(attributes) } }
   config.params_for = ->(klass) { klass.new.attributes.slice('title') }
 
-  # The owner association and the validation this app's models enforce.
+  # The owner association used when building records for the examples
+  # (model_attributes defaults to `{ owner_association => current_user }`;
+  # override model_attributes directly for multi-key or non-user-owned models).
   config.owner_association = :instructor
+  config.model_attributes = -> { { instructor: current_user, cohort: cohort } }
   config.required_attribute = :title
   config.required_error = "Title can't be blank"
 
@@ -388,7 +391,24 @@ SimpleCrud::RSpec.configure do |config|
 end
 ```
 
-Each setting has a sensible default, so you only override what differs. Callable settings (`current_user`, `authenticate`, `create_record`, `create_records`, `params_for`, `policy_class`, `serializer_class`) run in the example-group context, so they can call `request`, `create`, `current_user`, etc. The examples are controller-agnostic (they issue requests by action name, not hardcoded paths), so they work for namespaced and nested controllers alike. If you keep `assert_html_template` on (the default), add `gem 'rails-controller-testing'` for the `render_template` matcher.
+Each setting has a sensible default, so you only override what differs. Callable settings (`current_user`, `authenticate`, `create_record`, `create_records`, `params_for`, `model_attributes`, `policy_class`, `serializer_class`) run in the example-group context, so they can call `request`, `create`, `current_user`, etc. The examples are controller-agnostic (they issue requests by action name, not hardcoded paths), so they work for namespaced and nested controllers alike. If you keep `assert_html_template` on (the default), add `gem 'rails-controller-testing'` for the `render_template` matcher.
+
+#### Per-controller overrides via metadata
+
+Any setting can also be overridden per controller (or per example) with `simple_crud:` metadata instead of globally — useful when the app matches the defaults except for one resource. Metadata wins over global config, and every read happens at example runtime, so there are no around hooks or state to restore:
+
+```ruby
+RSpec.describe AssignmentsController, type: :controller, simple_crud: {
+  model_attributes: -> { { classroom: classroom } },
+  route_params: -> { { classroom_slug: classroom.slug } }
+} do
+  let(:classroom) { create(:classroom, instructor: current_user) }
+
+  include_examples 'simple crud for show'
+end
+```
+
+Callable settings resolve in the example context, so their lambdas can close over the spec's `let`s — that's how records land in the same classroom the route params point at.
 
 ## Contributing
 

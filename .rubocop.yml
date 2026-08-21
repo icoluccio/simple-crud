@@ -14,3 +14,8 @@ RSpec/SpecFilePathFormat:
 RSpec/SpecFilePathSuffix:
   Exclude:
     - spec/dummy_controller_spec.rb
+
+# Every shared-examples knob resolves through this module on purpose.
+Metrics/ModuleLength:
+  Exclude:
+    - lib/simple_crud/rspec/helpers.rb

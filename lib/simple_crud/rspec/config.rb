@@ -14,10 +14,10 @@ module SimpleCrud
     # Serializers), so apps on a different stack can override them via
     # SimpleCrud::RSpec.configure instead of editing the examples.
     #
-    # Callable settings (authenticate, current_user, create_record,
-    # create_records, attributes_for, policy_class, serializer_class) run in
-    # the example-group context, so they can call helpers such as `create`,
-    # `request` and `current_user`.
+    # Callable settings (authenticate, current_user, other_user,
+    # create_record, create_records, params_for, model_attributes,
+    # policy_class, serializer_class) run in the example-group context, so
+    # they can call helpers such as `create`, `request` and `current_user`.
     class Config
       DEFAULTS = {
         authenticate: lambda {
@@ -30,6 +30,7 @@ module SimpleCrud
         create_records: ->(klass, count, attributes) { create_list(klass, count, **attributes) },
         params_for: ->(klass) { attributes_for(klass) },
         owner_association: :user,
+        model_attributes: -> { owner_association ? { owner_association => current_user } : {} },
         required_attribute: :name,
         required_error: "Name can't be blank",
         finder_key: :slug,
