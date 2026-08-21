@@ -108,7 +108,7 @@ simple_crud_for :index, paginate: false, authorize: false, serializer: CustomSer
 - Serializer: specify a particular serializer you should use
 - Html: renders the action's ERB template instead of JSON (valid for `:index`, `:show`, `:new`, `:create`, `:update` and `:destroy`). Only meaningful in controllers that render templates
 - Scope: only valid for `:index`. A `Proc`/`lambda` taking `current_user` (plus the controller's `params` if it takes a second argument) that returns the relation to list, overriding the default `policy_scope`. The user is resolved via `SimpleCrud::Config.user_method` (`:current_user` by default; set it to e.g. `:current_admin`)
-- Finder: only valid for `:show`, `:update` and `:destroy`. A `Proc`/`lambda` (invoked with the controller's params) or a `Symbol` naming a class method on the model, used to look up the record instead of `klass.find(params[:id])`. The shared examples honor it too: base `:show`/`:update`/`:destroy` examples look records up by `config.finder_key` when a finder is configured
+- Finder: only valid for `:show`, `:update` and `:destroy`. A `Proc`/`lambda` (invoked with the controller's params) or a `Symbol` naming a class method on the model, used to look up the record instead of `klass.find(params[:id])`.
 - Build: only valid for `:new` and `:create`. A `Proc`/`lambda` that builds the record (invoked with the controller as `self`, so `current_user`, `params` and any instance variables are available), for building nested or owner-scoped records like `current_user.classrooms.build`. `:create` then assigns the permitted params to the built record before saving
 - Raise_on_invalid: only valid for `:create` and `:update`. Keeps the strict `create!`/`update!` semantics (raising on invalid input) instead of returning `422` with the validation errors
 - Redirect: only valid for HTML-mode `:create`, `:update` and `:destroy`. A `Proc`/`lambda` (called with the record) or a literal path used as the success redirect target. Defaults to the record (`:create`/`:update`) or the model's collection path (`:destroy`)
@@ -289,7 +289,7 @@ end
 ```
 
 #### Build
-`simple_crud_for :new` and `simple_crud_for :create` build the record with `klass.new`, which can't express owner-scoped or nested records (`current_user.classrooms.build`, `@classroom.assignments.build`). Pass a `build:` lambda — it runs with the controller as `self`, so `current_user`, `params` and any instance variables set by a `before_action` are available:
+`simple_crud_for :new` and `simple_crud_for :create` build the record with `klass.new`, which can't express owner-scoped or nested records (`current_user.classrooms.build`, `@classroom.assignments.build`). Pass a `build:` lambda; it runs with the controller as `self`, so `current_user`, `params` and any instance variables set by a `before_action` are available:
 
 ```ruby
 simple_crud_for :new, build: -> { current_user.classrooms.build }
@@ -299,11 +299,12 @@ simple_crud_for :create, build: -> { current_user.classrooms.build }
 `:create` assigns the permitted params to the built record before saving, so the owner/parent association survives. `:update` keeps finding the record via the `finder:`.
 
 #### Finder
-Slug-based (or otherwise custom) record lookups are supported on `:show`, `:update` and `:destroy`. Pass a `Proc`/`lambda` that maps the controller's `params` to a record, or a `Symbol` naming a class method on the model that takes the params:
+By default records are looked up by primary key via `klass.find(params[:id])`. The `finder:` option on `:show`, `:update` and `:destroy` replaces that with any lookup you want: pretty URLs (`resources :posts, param: :slug`), tokens, composite keys, or scoping by a parent resource. Pass a `Proc`/`lambda` that maps the controller's `params` to a record, or a `Symbol` naming a class method on the model that takes the params:
 
 ```ruby
-simple_crud_for :show, finder: ->(params) { Model.find_by!(slug: params[:slug]) }
+simple_crud_for :show, finder: ->(params) { Model.find_by!(token: params[:token]) }
 simple_crud_for :update, finder: :find_by_slug
+simple_crud_for :destroy, finder: ->(params) { current_user.models.find(params[:id]) }
 ```
 
 When omitted it defaults to `klass.find(params[:id])`, and `not_found` is still returned whenever the finder finds no record.
@@ -342,7 +343,7 @@ include_examples 'simple crud for create with build'     # build: -> { ... } on 
 It's not needed to specify paginate: true and such, since the shared examples will use the configuration that was originally passed to simple_crud_for
 
 #### Adopting the shared examples
-The shared examples assume the gem's own stack by default (Devise-JWT authentication, FactoryBot, Pundit, ActiveModel Serializers). Wiring is opt-in — require the file and call `SimpleCrud::RSpec.install!` in `spec/spec_helper.rb` (or `rails_helper.rb`), then configure anything your app differs on:
+The shared examples assume the gem's own stack by default (Devise-JWT authentication, FactoryBot, Pundit, ActiveModel Serializers). Wiring is opt-in: require the file and call `SimpleCrud::RSpec.install!` in `spec/spec_helper.rb` (or `rails_helper.rb`), then configure anything your app differs on:
 
 ```ruby
 SimpleCrud::RSpec.configure do |config|

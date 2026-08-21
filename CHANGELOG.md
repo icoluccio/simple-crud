@@ -16,7 +16,7 @@ Validation errors:
 * `:create` returns `201` / `422 { errors: [...] }` and `:update` returns `200` / `422` instead of raising; `raise_on_invalid: true` keeps strict `create!`/`update!` semantics.
 
 Authorization changes:
-* Breaking: `authorize: true` now always enforces policy checks — including `authenticate: false` actions, which reach policies with a `nil` user. Policies must tolerate a `nil` user.
+* Breaking: `authorize: true` now always enforces policy checks, including for `authenticate: false` actions, which reach policies with a `nil` user. Policies must tolerate a `nil` user.
 * `SimpleCrud::Config.user_method` (default `:current_user`) selects the controller method providing the user to policies and scope lambdas, so apps with other conventions (`current_admin`, ...) need no shims.
 
 Adapter interfaces:
