@@ -94,7 +94,7 @@ module SimpleCrud
       end
 
       # Extra params (e.g. a parent slug) added to every request, for nested
-      # resources like /classrooms/:classroom_slug/assignments.
+      # resources like /projects/:project_slug/tasks.
       def route_params
         resolve(setting(:route_params))
       end

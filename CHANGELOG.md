@@ -4,7 +4,7 @@
 
 Shared examples configuration:
 * Every setting can be overridden per controller or per example via `simple_crud:` RSpec metadata. Metadata takes precedence over `SimpleCrud::RSpec.configure` and the defaults, and all reads happen at example runtime, so per-resource tweaks need no around hooks, no global mutation and no restore logic.
-* New `model_attributes` setting (default: `{ owner_association => current_user }`) decides how records are built for the examples, so multi-key (`{ user:, classroom: }`), non-user-owned (`{ classroom: classroom }`) or owner-less models work without editing the shared examples.
+* New `model_attributes` setting (default: `{ owner_association => current_user }`) decides how records are built for the examples, so multi-key (`{ user:, project: }`), non-user-owned (`{ project: project }`) or owner-less models work without editing the shared examples.
 * Dedicated examples (`*_with_block`, `*_with_build`, `*_with_scope`) no longer assume the gem's dummy app: request params derive from `params_for`/`owner_params`, authentication wraps conditionally on the action's `authenticate:` option, and render-block actions are asserted on status and persistence effects only (a block's response body is app-defined by definition).
 
 ### V0.3.0
@@ -15,7 +15,7 @@ Server-rendered (HTML) support:
 
 Custom lookups, scoping and building:
 * `finder:` on `:show`/`:update`/`:destroy`: a `Proc`/lambda invoked with the controller's params, or a `Symbol` naming a class method on the model. Defaults to `klass.find(params[:id])`.
-* `build:` on `:new`/`:create` for owner-scoped or nested builds (`current_user.classrooms.build`); runs with the controller as `self`, and `:create` assigns the permitted params to the built record before saving.
+* `build:` on `:new`/`:create` for owner-scoped or nested builds (`current_user.projects.build`); runs with the controller as `self`, and `:create` assigns the permitted params to the built record before saving.
 * With `authorize: true`, `:index` paginates the Pundit `policy_scope` of the model (falling back to the full relation when no `Scope` is defined) instead of `klass.all`, with a per-action `scope: ->(user[, params]) { ... }` override.
 * `redirect:` on HTML-mode `:create`/`:update`/`:destroy`: a `Proc` called with the record, or a literal path, overriding the default success redirect.
 

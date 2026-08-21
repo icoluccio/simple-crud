@@ -109,7 +109,7 @@ simple_crud_for :index, paginate: false, authorize: false, serializer: CustomSer
 - Html: renders the action's ERB template instead of JSON (valid for `:index`, `:show`, `:new`, `:create`, `:update` and `:destroy`). Only meaningful in controllers that render templates
 - Scope: only valid for `:index`. A `Proc`/`lambda` taking `current_user` (plus the controller's `params` if it takes a second argument) that returns the relation to list, overriding the default `policy_scope`. The user is resolved via `SimpleCrud::Config.user_method` (`:current_user` by default; set it to e.g. `:current_admin`)
 - Finder: only valid for `:show`, `:update` and `:destroy`. A `Proc`/`lambda` (invoked with the controller's params) or a `Symbol` naming a class method on the model, used to look up the record instead of `klass.find(params[:id])`.
-- Build: only valid for `:new` and `:create`. A `Proc`/`lambda` that builds the record (invoked with the controller as `self`, so `current_user`, `params` and any instance variables are available), for building nested or owner-scoped records like `current_user.classrooms.build`. `:create` then assigns the permitted params to the built record before saving
+- Build: only valid for `:new` and `:create`. A `Proc`/`lambda` that builds the record (invoked with the controller as `self`, so `current_user`, `params` and any instance variables are available), for building nested or owner-scoped records like `current_user.projects.build`. `:create` then assigns the permitted params to the built record before saving
 - Raise_on_invalid: only valid for `:create` and `:update`. Keeps the strict `create!`/`update!` semantics (raising on invalid input) instead of returning `422` with the validation errors
 - Redirect: only valid for HTML-mode `:create`, `:update` and `:destroy`. A `Proc`/`lambda` (called with the record) or a literal path used as the success redirect target. Defaults to the record (`:create`/`:update`) or the model's collection path (`:destroy`)
 
@@ -289,11 +289,11 @@ end
 ```
 
 #### Build
-`simple_crud_for :new` and `simple_crud_for :create` build the record with `klass.new`, which can't express owner-scoped or nested records (`current_user.classrooms.build`, `@classroom.assignments.build`). Pass a `build:` lambda; it runs with the controller as `self`, so `current_user`, `params` and any instance variables set by a `before_action` are available:
+`simple_crud_for :new` and `simple_crud_for :create` build the record with `klass.new`, which can't express owner-scoped or nested records (`current_user.projects.build`, `@project.tasks.build`). Pass a `build:` lambda; it runs with the controller as `self`, so `current_user`, `params` and any instance variables set by a `before_action` are available:
 
 ```ruby
-simple_crud_for :new, build: -> { current_user.classrooms.build }
-simple_crud_for :create, build: -> { current_user.classrooms.build }
+simple_crud_for :new, build: -> { current_user.projects.build }
+simple_crud_for :create, build: -> { @project.tasks.build }
 ```
 
 `:create` assigns the permitted params to the built record before saving, so the owner/parent association survives. `:update` keeps finding the record via the `finder:`.
@@ -362,8 +362,8 @@ SimpleCrud::RSpec.configure do |config|
   # The owner association used when building records for the examples
   # (model_attributes defaults to `{ owner_association => current_user }`;
   # override model_attributes directly for multi-key or non-user-owned models).
-  config.owner_association = :instructor
-  config.model_attributes = -> { { instructor: current_user, cohort: cohort } }
+  config.owner_association = :owner
+  config.model_attributes = -> { { owner: current_user } }
   config.required_attribute = :title
   config.required_error = "Title can't be blank"
 
@@ -374,13 +374,13 @@ SimpleCrud::RSpec.configure do |config|
   config.assert_html_template = false
 
   # Server-rendered apps usually use nested strong params
-  # (params.require(:classroom).permit(:name)); wrap request bodies under the
+  # (params.require(:task).permit(:name)); wrap request bodies under the
   # model's params key instead of posting flat params.
-  config.params_key = :classroom
+  config.params_key = :task
 
-  # Nested resources (/classrooms/:classroom_slug/assignments): extra params
+  # Nested resources (/projects/:project_slug/tasks): extra params
   # (e.g. the parent slug) added to every request.
-  config.route_params = -> { { classroom_slug: model.classroom_slug } }
+  config.route_params = -> { { project_slug: project.slug } }
 
   # Re-render the form with a 422 on validation failure (instead of 200).
   config.invalid_status = :unprocessable_entity
@@ -398,17 +398,17 @@ Each setting has a sensible default, so you only override what differs. Callable
 Any setting can also be overridden per controller (or per example) with `simple_crud:` metadata instead of globally — useful when the app matches the defaults except for one resource. Metadata wins over global config, and every read happens at example runtime, so there are no around hooks or state to restore:
 
 ```ruby
-RSpec.describe AssignmentsController, type: :controller, simple_crud: {
-  model_attributes: -> { { classroom: classroom } },
-  route_params: -> { { classroom_slug: classroom.slug } }
+RSpec.describe TasksController, type: :controller, simple_crud: {
+  model_attributes: -> { { project: project } },
+  route_params: -> { { project_slug: project.slug } }
 } do
-  let(:classroom) { create(:classroom, instructor: current_user) }
+  let(:project) { create(:project, owner: current_user) }
 
   include_examples 'simple crud for show'
 end
 ```
 
-Callable settings resolve in the example context, so their lambdas can close over the spec's `let`s — that's how records land in the same classroom the route params point at.
+Callable settings resolve in the example context, so their lambdas can close over the spec's `let`s — that's how records land in the same project the route params point at.
 
 ## Contributing
 
