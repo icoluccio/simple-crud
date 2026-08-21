@@ -107,11 +107,11 @@ simple_crud_for :index, paginate: false, authorize: false, serializer: CustomSer
 - Authenticate: whether it should use Devise to check for a current_user
 - Serializer: specify a particular serializer you should use
 - Html: renders the action's ERB template instead of JSON (valid for `:index`, `:show`, `:new`, `:create`, `:update` and `:destroy`). Only meaningful in controllers that render templates
-- Scope: only valid for `:index`. A `Proc`/`lambda` taking `current_user` (plus the controller's `params` if it takes a second argument) that returns the relation to list, overriding the default `policy_scope`
+- Scope: only valid for `:index`. A `Proc`/`lambda` taking `current_user` (plus the controller's `params` if it takes a second argument) that returns the relation to list, overriding the default `policy_scope`. The user is resolved via `SimpleCrud::Config.user_method` (`:current_user` by default; set it to e.g. `:current_admin`)
 - Finder: only valid for `:show`, `:update` and `:destroy`. A `Proc`/`lambda` (invoked with the controller's params) or a `Symbol` naming a class method on the model, used to look up the record instead of `klass.find(params[:id])`. The shared examples honor it too: base `:show`/`:update`/`:destroy` examples look records up by `config.finder_key` when a finder is configured
-- Scope: only valid for `:index`. A `Proc`/`lambda` taking `current_user` (plus the controller's `params` if it takes a second argument) that returns the relation to list, overriding the default `policy_scope`
 - Build: only valid for `:new` and `:create`. A `Proc`/`lambda` that builds the record (invoked with the controller as `self`, so `current_user`, `params` and any instance variables are available), for building nested or owner-scoped records like `current_user.classrooms.build`. `:create` then assigns the permitted params to the built record before saving
 - Raise_on_invalid: only valid for `:create` and `:update`. Keeps the strict `create!`/`update!` semantics (raising on invalid input) instead of returning `422` with the validation errors
+- Redirect: only valid for HTML-mode `:create`, `:update` and `:destroy`. A `Proc`/`lambda` (called with the record) or a literal path used as the success redirect target. Defaults to the record (`:create`/`:update`) or the model's collection path (`:destroy`)
 
 You'll need a few things so they work correctly:
 
@@ -156,7 +156,7 @@ SimpleCrud.configure { |config| config.pagination_adapter = MyPaginationAdapter.
 #### Authorize
 Authorization checks go through [Pundit](https://github.com/varvet/pundit) by default. Name the policy after the model plus `Policy`, e.g. `AuthorPolicy`, written as a regular Pundit policy:
 
-> **Note:** authorization only runs when `authenticate: true` (the default) — `maybe_authorize` skips the check unless a `current_user` is present. Devise provides `authenticate_user!` and `current_user` for you; non-Devise apps must define both themselves for `authorize: true` to have any effect (and use `authenticate: false` when there's no notion of a signed-in user).
+> **Note:** authorization runs whenever `authorize: true`, independently of `authenticate`. With no signed-in user the policy receives `nil` as the user, so write policies that tolerate it (e.g. `user.nil? ? false : ...`). Devise provides `authenticate_user!` and `current_user` for you; non-Devise apps must define a `current_user` (or point `SimpleCrud::Config.user_method` at their own method) for policies and `scope:` lambdas to receive the user.
 
 ```ruby
 class AuthorPolicy
@@ -186,9 +186,10 @@ end
 
 ```
 
-When `authorize: true`, the `:index` action paginates the Pundit `policy_scope` of the model (falling back to the full relation when no `Scope` is defined) instead of `klass.all`, so "only my records" scoping works out of the box. Override the scope per action with the `scope:` option, a callable that receives `current_user` (and the controller's `params` when it takes a second argument):
+When `authorize: true`, the `:index` action paginates the Pundit `policy_scope` of the model (falling back to the full relation when no `Scope` is defined) instead of `klass.all`, so "only my records" scoping works out of the box. Override the scope per action with the `scope:` option, a callable that receives the user resolved via `SimpleCrud::Config.user_method` (`nil` when there is none, and `params` too when it takes a second argument):
 
 ```ruby
+SimpleCrud.configure { |c| c.user_method = :current_admin } # non-Devise naming conventions
 simple_crud_for :index, scope: ->(user) { Model.visible_to(user) }
 simple_crud_for :index, scope: ->(user, params) { Model.where(status: params[:status]).visible_to(user) }
 ```
@@ -341,7 +342,7 @@ include_examples 'simple crud for create with build'     # build: -> { ... } on 
 It's not needed to specify paginate: true and such, since the shared examples will use the configuration that was originally passed to simple_crud_for
 
 #### Adopting the shared examples
-The shared examples assume the gem's own stack by default (Devise-JWT authentication, FactoryBot, Pundit, ActiveModel Serializers). If your app differs, configure them once in `spec/spec_helper.rb` (or `rails_helper.rb`):
+The shared examples assume the gem's own stack by default (Devise-JWT authentication, FactoryBot, Pundit, ActiveModel Serializers). Wiring is opt-in — require the file and call `SimpleCrud::RSpec.install!` in `spec/spec_helper.rb` (or `rails_helper.rb`), then configure anything your app differs on:
 
 ```ruby
 SimpleCrud::RSpec.configure do |config|

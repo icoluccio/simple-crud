@@ -1,6 +1,12 @@
 ## Change log
 
 ### V0.6.0
+* Decouple authorization from authentication: `authorize: true` now always runs policy checks (passing `nil` as the user when nobody is signed in) instead of silently skipping them for `authenticate: false` actions. Policies must tolerate a `nil` user.
+* Add `SimpleCrud::Config.user_method` (default `:current_user`) so apps with different conventions (`current_admin`, ...) can point scope lambdas and policies at their own user method.
+* Add a `redirect:` option for HTML-mode `:create`/`:update`/`:destroy`: a `Proc`/`lambda` (called with the record) or literal path overriding the default success redirect.
+* Make the shared examples' RSpec wiring opt-in via `SimpleCrud::RSpec.install!` instead of mutating global RSpec config on require.
+* Fix the Kaminari adapter: string query params no longer corrupt the offset (`?page=3&per_page=10` used to resolve to `OFFSET 1010`), and `per_page` now respects `Kaminari.config.max_per_page`.
+* Custom finders now reject non-record results (`ActiveRecord::RecordNotFound` instead of a confusing failure later), and configuration mistakes in `simple_crud_for` raise `ArgumentError` instead of throwing uncatchable string tags.
 * Make the RSpec shared examples a reusable testing library via `SimpleCrud::RSpec.configure`. Every app-specific assumption is now a configurable setting with a gem-convention default, so apps on a different stack than the gem's (Devise-JWT + FactoryBot + Pundit + AMS) can adopt them: `authenticate`/`current_user`/`other_user` (sign-in and user creation), `create_record`/`create_records`/`params_for` (model and param building), `owner_association`/`required_attribute`/`required_error` (model-specific fixtures and assertions), `finder_key` (custom-finder param), and `policy_class`/`serializer_class`.
 * The base examples are now HTML-aware: they branch on the `html:` option and assert the rendered template/redirect instead of a JSON body, so one set of examples per action works for both API and server-rendered controllers. Removed the now-redundant `simple crud for ... with html` variants.
 * The HTML/block/finder/scope/build examples are controller-agnostic: they issue requests by action name instead of hardcoded routes, so they work for namespaced and nested controllers without editing paths.
