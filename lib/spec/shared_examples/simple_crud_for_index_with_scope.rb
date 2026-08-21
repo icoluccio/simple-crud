@@ -8,7 +8,7 @@ shared_examples 'simple crud for index with scope' do
 
   before do
     authenticate_request
-    make_policies_succeed(:index)
+    make_policies_succeed(:index) if check_authorize(:index)
     my_models
     other_models
     get :index, params: with_route_params(request_params)

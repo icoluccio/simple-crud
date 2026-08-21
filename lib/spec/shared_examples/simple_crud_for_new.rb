@@ -9,7 +9,7 @@ shared_examples 'simple crud for new' do
       include_context 'with authenticated user' if check_authenticate(:new)
 
       before do
-        make_policies_succeed(:new)
+        make_policies_succeed(:new) if check_authorize(:new)
         get :new, params: with_route_params({}), format: request_format(:new)
       end
 

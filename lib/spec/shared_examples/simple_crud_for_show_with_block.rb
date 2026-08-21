@@ -7,7 +7,7 @@ shared_examples 'simple crud for show with block' do
     let!(:record) { model }
 
     before do
-      make_policies_succeed(:show)
+      make_policies_succeed(:show) if check_authorize(:show)
       get :show, params: with_route_params(record_param(:show, record)), format: request_format(:show)
     end
 
