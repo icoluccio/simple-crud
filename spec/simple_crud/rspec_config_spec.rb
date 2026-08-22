@@ -39,6 +39,16 @@ describe SimpleCrud::RSpec do
       end
     end
 
+    it 'derives other_scoped_attributes from model_attributes and the other user' do
+      expect(other_scoped_attributes).to eq(user: other_user)
+    end
+
+    it 'requires a Hash model_attributes before deriving other_scoped_attributes' do
+      with_config_override(:model_attributes, -> { 'not-a-hash' }) do
+        expect { other_scoped_attributes }.to raise_error(ArgumentError, /override other_scoped_attributes instead/)
+      end
+    end
+
     it 'lets settings be overridden and restored', :aggregate_failures do
       original = config.required_attribute
 

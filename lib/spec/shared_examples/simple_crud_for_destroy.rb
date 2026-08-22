@@ -60,7 +60,7 @@ shared_examples 'simple crud for destroy' do
         expect(model_class_object.exists?(model.id)).to be true
       end
 
-      unless check_block(:destroy)
+      unless check_block(:destroy) || check_raise_on_invalid(:destroy)
         if check_html(:destroy)
           include_examples 'simple crud renders template', :show
         else

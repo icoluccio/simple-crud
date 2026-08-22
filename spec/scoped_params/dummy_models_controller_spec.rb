@@ -2,10 +2,11 @@
 
 require 'spec_helper'
 
-describe ScopedParams::DummyModelsController, type: :controller do
+describe ScopedParams::DummyModelsController, simple_crud: {
+  scoped_attributes: -> { { user: current_user, something: 42 } },
+  other_scoped_attributes: -> { { user: other_user, something: 7 } }
+}, type: :controller do
   include_examples 'simple crud for index with scope' do
-    let(:my_models) { create_list(:dummy_model, 2, user: user, something: 42) }
-    let(:other_models) { create_list(:dummy_model, 1, user: user, something: 7) }
     let(:request_params) { { something: 42 } }
   end
 end

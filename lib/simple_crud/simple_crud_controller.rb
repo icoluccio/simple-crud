@@ -3,10 +3,13 @@
 require 'active_support/all'
 require_relative 'config'
 require_relative 'controller_helpers'
+require_relative 'action_lambdas'
 
 # Extended onto a controller for CRUD actions.
 module SimpleCrudController
   extend SimpleCrud::ControllerHelpers
+  # Include, not extend: controllers gain these by extending SimpleCrudController.
+  include SimpleCrud::ActionLambdas
 
   cattr_accessor :params, :permitted
 
@@ -15,13 +18,13 @@ module SimpleCrudController
   ### paginate: paginate the list via Config.pagination_adapter (wor-paginate by default)
   ### authenticate: use devise to authenticate
   ### serializer: use a particular serializer (both each_serializer and serializer)
-  ### html: render the action's ERB template instead of JSON (index/show/new/create/update/destroy)
-  ### finder: custom record lookup (Proc/lambda or Symbol) for :show/:update/:destroy
+  ### html: render the action's ERB template instead of JSON (index/show/new/edit/create/update/destroy)
+  ### finder: custom record lookup (Proc/lambda or Symbol) for :show/:update/:destroy/:edit
   ### scope: custom index scope (Proc/lambda taking current_user and optional params), overrides policy_scope
   ### build: custom record builder (Proc/lambda) for :new/:create, invoked with the controller as self
   ### raise_on_invalid: use strict create!/update! semantics instead of returning 422
   ### A block given to simple_crud_for renders explicitly: it receives the records for :index,
-  ### the record for :show/:new, or the record and a saved flag for :create/:update/:destroy
+  ### the record for :show/:new/:edit, or the record and a saved flag for :create/:update/:destroy
   def simple_crud_for(method, parameters = {}, &block)
     parameters[:html] = true if block && !parameters.key?(:html)
     parameters[:block] = true if block
@@ -48,77 +51,12 @@ module SimpleCrudController
     @simple_crud_metadata[method] = parameters
   end
 
-  def crud_lambda_for_show(klass, parameters = {}, &block)
-    lambda do
-      authenticate_user! if parameters[:authenticate]
-      requested = SimpleCrudController.find_record(klass, self, parameters)
-
-      options = {}.merge(serializer: parameters[:serializer]).compact
-      SimpleCrudController.maybe_authorize(self, requested, parameters)
-      SimpleCrudController.render_show(self, requested, options, parameters, &block)
-    end
-  end
-
-  def crud_lambda_for_new(klass, parameters = {}, &block)
-    lambda do
-      authenticate_user! if parameters[:authenticate]
-      record = SimpleCrudController.build_record(self, klass, parameters)
-      SimpleCrudController.maybe_authorize(self, record, parameters)
-      SimpleCrudController.render_new(self, record, parameters, &block)
-    end
-  end
-
-  def crud_lambda_for_index(klass, parameters = {}, &block)
-    lambda do
-      authenticate_user! if parameters[:authenticate]
-      SimpleCrudController.maybe_authorize(self, klass.new, parameters)
-      options = {}.merge(each_serializer: parameters[:serializer]).compact
-      SimpleCrudController.render_index(self, klass, options, parameters, &block)
-    end
-  end
-
-  def crud_lambda_for_create(klass, parameters = {}, &block)
-    lambda do
-      authenticate_user! if parameters[:authenticate]
-      permitted_params = send("#{self.class.simple_crud_controller_model.to_s.underscore}_params")
-      record = SimpleCrudController.build_record(self, klass, parameters)
-      record.assign_attributes(permitted_params)
-      SimpleCrudController.maybe_authorize(self, record, parameters)
-      persist = ->(bang:) { bang ? record.save! : record.save }
-      options = { status: :created, failure_template: :new }
-      SimpleCrudController.save_and_render(self, record, parameters, options, persist, &block)
-    end
-  end
-
-  def crud_lambda_for_update(klass, parameters = {}, &block)
-    lambda do
-      authenticate_user! if parameters[:authenticate]
-      requested = SimpleCrudController.find_record(klass, self, parameters)
-      SimpleCrudController.maybe_authorize(self, requested, parameters)
-      permitted_params = send("#{self.class.simple_crud_controller_model.to_s.underscore}_params")
-      persist = ->(bang:) { bang ? requested.update!(permitted_params) : requested.update(permitted_params) }
-      options = { status: :ok, failure_template: :edit }
-      SimpleCrudController.save_and_render(self, requested, parameters, options, persist, &block)
-    end
-  end
-
-  def crud_lambda_for_destroy(klass, parameters = {}, &block)
-    lambda do
-      authenticate_user! if parameters[:authenticate]
-      requested = SimpleCrudController.find_record(klass, self, parameters)
-      SimpleCrudController.maybe_authorize(self, requested, parameters)
-      options = { status: :ok, failure_template: :show, redirect: parameters[:redirect] || klass }
-      persist = ->(bang:) { bang ? requested.destroy! : requested.destroy }
-      SimpleCrudController.persist_and_render(self, requested, parameters, options, persist, &block)
-    end
-  end
-
   def simple_crud_controller_model
     to_s.split('::').last.sub('Controller', '').singularize.classify.constantize
   end
 
   def check_valid_method(method)
-    raise ArgumentError, 'invalid method' unless %i[show index create update destroy new].include? method
+    raise ArgumentError, 'invalid method' unless %i[show index create update destroy new edit].include? method
   end
 
   def check_policies(parameters)

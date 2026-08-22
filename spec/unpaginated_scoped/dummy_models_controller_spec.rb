@@ -2,6 +2,6 @@
 
 require 'spec_helper'
 
-describe HtmlScoped::DummyModelsController, type: :controller do
+describe UnpaginatedScoped::DummyModelsController, type: :controller do
   include_examples 'simple crud for index with scope'
 end

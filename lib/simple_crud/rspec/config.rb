@@ -31,6 +31,17 @@ module SimpleCrud
         params_for: ->(klass) { attributes_for(klass) },
         owner_association: :user,
         model_attributes: -> { owner_association ? { owner_association => current_user } : {} },
+        scoped_attributes: -> { model_attributes },
+        other_scoped_attributes: lambda {
+          attributes = model_attributes
+          if owner_association && !attributes.is_a?(Hash)
+            raise ArgumentError,
+                  'model_attributes must resolve to a Hash when owner_association is set; ' \
+                  'override other_scoped_attributes instead'
+          end
+
+          owner_association ? attributes.merge(owner_association => other_user) : {}
+        },
         required_attribute: :name,
         required_error: "Name can't be blank",
         finder_key: :slug,

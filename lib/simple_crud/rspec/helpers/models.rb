@@ -41,6 +41,14 @@ module SimpleCrud
         def model_serializer
           defined?(serializer) ? serializer : instance_exec(model, &setting(:serializer_class))
         end
+
+        def rendered_record
+          controller.instance_variable_get(:@record)
+        end
+
+        def rendered_records
+          controller.instance_variable_get(:@records)
+        end
       end
     end
   end

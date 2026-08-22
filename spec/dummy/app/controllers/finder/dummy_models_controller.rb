@@ -18,5 +18,6 @@ module Finder
     simple_crud_for :show, finder: ->(params) { DummyModel.find_by!(slug: params[:slug]) }
     simple_crud_for :update, finder: :find_by_slug
     simple_crud_for :destroy, finder: ->(params) { DummyModel.find_by!(slug: params[:slug]) }
+    simple_crud_for :edit, finder: ->(params) { DummyModel.find_by!(slug: params[:slug]) }
   end
 end

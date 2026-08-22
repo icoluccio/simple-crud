@@ -6,6 +6,8 @@ Shared examples configuration:
 * Every setting can be overridden per controller or per example via `simple_crud:` RSpec metadata. Metadata takes precedence over `SimpleCrud::RSpec.configure` and the defaults, and all reads happen at example runtime, so per-resource tweaks need no around hooks, no global mutation and no restore logic.
 * New `model_attributes` setting (default: `{ owner_association => current_user }`) decides how records are built for the examples, so multi-key (`{ user:, project: }`), non-user-owned (`{ project: project }`) or owner-less models work without editing the shared examples.
 * Dedicated examples (`*_with_block`, `*_with_build`, `*_with_scope`) no longer assume the gem's dummy app: request params derive from `params_for`/`owner_params`, authentication wraps conditionally on the action's `authenticate:` option, and render-block actions are asserted on status and persistence effects only (a block's response body is app-defined by definition).
+* The finder/build dedicated families (`show/update/destroy with finder`, `not found with finder`, `new with build`) adapt to each action's declared options too: render-block actions are asserted success-only, `html: true` actions assert the rendered template or redirect, and plain JSON keeps the status/body assertions. Server-rendered apps no longer need to skip these families.
+* `index with scope` builds its records through new `scoped_attributes` (default: `model_attributes`) and `other_scoped_attributes` (default: `model_attributes.merge(owner_association => other_user)`) settings instead of hardcoding `owner_association => user`, so factories without that attribute keep working and multi-key models express their scope via metadata. The assertion follows the controller: `assigns(:records)` ids for `html: true`, the wor-paginate envelope for paginated JSON, and the bare serialized array otherwise.
 * Actions declared with a render block expose `block: true` in the controller metadata, and the shared examples treat them accordingly: failure/invalid paths assert persistence effects only (the block decides how the response is rendered), while default flows keep their pinned statuses/templates.
 * The base destroy example covers the failure path (record always kept; non-block flows respond 422 as JSON or re-render `show` as HTML).
 * New optional `created_record_check` setting: a lambda receiving the persisted record in the create/update success paths, to assert ownership/scope that `count == 1` alone can't catch.
@@ -17,7 +19,8 @@ Server-rendered (HTML) support:
 * New `:new` action: builds a record, authorizes it, and renders `new.html.erb` (or returns JSON in API mode).
 
 Custom lookups, scoping and building:
-* `finder:` on `:show`/`:update`/`:destroy`: a `Proc`/lambda invoked with the controller's params, or a `Symbol` naming a class method on the model. Defaults to `klass.find(params[:id])`.
+* `finder:` on `:show`/`:update`/`:destroy`/`:edit`: a `Proc`/lambda invoked with the controller's params, or a `Symbol` naming a class method on the model. Defaults to `klass.find(params[:id])`.
+* New `simple_crud_for :edit`: the find-instead-of-build twin of `:new`. It looks the record up (honoring `finder:`), authorizes it and renders `edit.html.erb` with `@record` in HTML mode, returning the record as JSON otherwise. A matching `simple crud for edit` shared example covers the authorized/denied, not-found and html/json/block paths.
 * `build:` on `:new`/`:create` for owner-scoped or nested builds (`current_user.projects.build`); runs with the controller as `self`, and `:create` assigns the permitted params to the built record before saving.
 * With `authorize: true`, `:index` paginates the Pundit `policy_scope` of the model (falling back to the full relation when no `Scope` is defined) instead of `klass.all`, with a per-action `scope: ->(user[, params]) { ... }` override.
 * `redirect:` on HTML-mode `:create`/`:update`/`:destroy`: a `Proc` called with the record, or a literal path, overriding the default success redirect.
@@ -27,6 +30,7 @@ Validation errors:
 
 Authorization changes:
 * Breaking: `authorize: true` now always enforces policy checks, including for `authenticate: false` actions, which reach policies with a `nil` user. Policies must tolerate a `nil` user.
+* Breaking: `:index` authorizes the model class instead of an unsaved instance, matching the Pundit/CanCanCan collection conventions. `index?` policies can no longer inspect record state (there is none), so write them against the user.
 * `SimpleCrud::Config.user_method` (default `:current_user`) selects the controller method providing the user to policies and scope lambdas, so apps with other conventions (`current_admin`, ...) need no shims.
 
 Adapter interfaces:

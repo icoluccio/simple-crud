@@ -24,7 +24,7 @@ module SimpleCrud
         end
 
         %i[owner_association required_attribute required_error finder_key params_key invalid_status
-           unauthenticated_status assert_html_template].each do |name|
+           unauthenticated_status assert_html_template scoped_attributes other_scoped_attributes].each do |name|
           define_method(name) { resolve(setting(name)) }
         end
 

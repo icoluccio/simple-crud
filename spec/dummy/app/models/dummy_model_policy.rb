@@ -20,6 +20,10 @@ class DummyModelPolicy
     check_user
   end
 
+  def edit?
+    update?
+  end
+
   def create?
     check_user
   end
@@ -33,6 +37,6 @@ class DummyModelPolicy
   end
 
   def index?
-    check_user
+    user.present?
   end
 end
