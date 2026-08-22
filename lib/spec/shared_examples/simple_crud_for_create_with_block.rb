@@ -2,17 +2,35 @@
 
 shared_examples 'simple crud for create with block' do
   describe 'POST #create with a render block' do
-    it 'passes the saved record to the block' do
-      post :create, params: with_route_params(body_params({ name: 'Blocked' }.merge(owner_params)))
+    context 'when successfully creating a record' do
+      include_context 'with authenticated user' if check_authenticate(:create)
+      let(:create_params) { model_params.merge(owner_params) }
 
-      expect(response.parsed_body).to include('saved' => true)
+      before do
+        post :create, params: with_route_params(body_params(create_params)), format: request_format(:create)
+      end
+
+      it 'passes the saved record to the block' do
+        expect(response).to be_successful
+      end
+
+      it 'creates the record' do
+        expect(model_class_object.count).to be 1
+      end
     end
 
-    it 'passes the failed record to the block', :aggregate_failures do
-      post :create, params: with_route_params(body_params(owner_params))
+    unless check_raise_on_invalid(:create)
+      context 'when creating with invalid attributes' do
+        include_context 'with authenticated user' if check_authenticate(:create)
 
-      expect(response).to have_http_status(422)
-      expect(response.parsed_body).to include('saved' => false)
+        before do
+          post :create, params: with_route_params(body_params(owner_params)), format: request_format(:create)
+        end
+
+        it 'does not create a model' do
+          expect(model_class_object.count).to be 0
+        end
+      end
     end
   end
 end

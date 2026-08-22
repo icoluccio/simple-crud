@@ -17,10 +17,22 @@ Rails.application.routes.draw do
   end
 
   namespace :finder do
-    resources :dummy_models, only: %i[show update destroy], param: :slug
+    resources :dummy_models, only: %i[show edit update destroy], param: :slug
+  end
+
+  namespace :html_finder do
+    resources :dummy_models, only: %i[new show edit update destroy], param: :slug
+  end
+
+  namespace :block_finder do
+    resources :dummy_models, only: %i[show edit update destroy], param: :slug
   end
 
   namespace :scoped do
+    resources :dummy_models, only: :index
+  end
+
+  namespace :unpaginated_scoped do
     resources :dummy_models, only: :index
   end
 
@@ -70,6 +82,14 @@ Rails.application.routes.draw do
 
   namespace :block_destroy do
     resources :dummy_models, only: :destroy
+  end
+
+  namespace :block_redirect do
+    resources :dummy_models, only: %i[show destroy]
+  end
+
+  namespace :block_json do
+    resources :dummy_models, only: %i[index show new]
   end
 
   namespace :built do

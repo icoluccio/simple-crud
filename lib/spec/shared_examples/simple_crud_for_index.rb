@@ -13,7 +13,7 @@ shared_examples 'simple crud for index' do
       include_context 'with authenticated user' if check_authenticate(:index)
 
       before do
-        make_policies_succeed(:index)
+        make_policies_succeed(:index) if check_authorize(:index)
         get :index, params: with_route_params({}), format: request_format(:index)
       end
 

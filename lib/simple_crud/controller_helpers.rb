@@ -33,11 +33,20 @@ module SimpleCrud
     end
 
     def render_new(controller, record, parameters, &block)
+      render_form(controller, record, :new, parameters, &block)
+    end
+
+    def render_edit(controller, record, parameters, &block)
+      render_form(controller, record, :edit, parameters, &block)
+    end
+
+    def render_form(controller, record, template, parameters, &block)
       if parameters[:html] || block
         controller.instance_variable_set(:@record, record)
-        block ? controller.instance_exec(record, &block) : controller.render(:new)
+        block ? controller.instance_exec(record, &block) : controller.render(template)
       else
-        controller.render json: record
+        options = {}.merge(serializer: parameters[:serializer]).compact
+        controller.render({ json: record }.merge(options))
       end
     end
 

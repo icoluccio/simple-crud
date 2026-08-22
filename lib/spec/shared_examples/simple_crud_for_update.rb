@@ -54,6 +54,11 @@ shared_examples 'simple crud for update' do
           expect(model_class_object.last).to have_attributes(update_attributes)
         end
       end
+
+      it 'updates a record passing created_record_check', :aggregate_failures do
+        expect(model_class_object.last).to be_present
+        instance_exec(model_class_object.last, &created_record_check) if created_record_check
+      end
     end
 
     context 'when updating a model that doesn\'t exist' do
@@ -84,15 +89,17 @@ shared_examples 'simple crud for update' do
                        format: request_format(:update)
         end
 
-        if check_html(:update)
-          include_examples 'simple crud renders template', :edit, -> { invalid_status }
-        else
-          it 'responds with unprocessable entity' do
-            expect(response).to have_http_status(unprocessable_status)
-          end
+        unless check_block(:update)
+          if check_html(:update)
+            include_examples 'simple crud renders template', :edit, -> { invalid_status }
+          else
+            it 'responds with unprocessable entity' do
+              expect(response).to have_http_status(unprocessable_status)
+            end
 
-          it 'returns the validation errors' do
-            expect(response_body['errors']).to include(required_error)
+            it 'returns the validation errors' do
+              expect(response_body['errors']).to include(required_error)
+            end
           end
         end
       end

@@ -39,6 +39,16 @@ describe SimpleCrud::RSpec do
       end
     end
 
+    it 'derives other_scoped_attributes from model_attributes and the other user' do
+      expect(other_scoped_attributes).to eq(user: other_user)
+    end
+
+    it 'requires a Hash model_attributes before deriving other_scoped_attributes' do
+      with_config_override(:model_attributes, -> { 'not-a-hash' }) do
+        expect { other_scoped_attributes }.to raise_error(ArgumentError, /override other_scoped_attributes instead/)
+      end
+    end
+
     it 'lets settings be overridden and restored', :aggregate_failures do
       original = config.required_attribute
 
@@ -62,6 +72,29 @@ describe SimpleCrud::RSpec do
       expect(required_attribute).to eq(:title)
 
       SimpleCrud::RSpec.configure { |c| c.required_attribute = original }
+    end
+
+    it 'falls back to global config when no metadata overrides' do
+      expect(setting(:finder_key)).to eq(:slug)
+    end
+
+    it 'defaults model_attributes to the owner association and current user' do
+      expect(model_attributes).to eq(user: current_user)
+    end
+
+    describe 'with simple_crud metadata',
+             simple_crud: { finder_key: :token, model_attributes: -> { { overridden: true } } } do
+      it 'prefers metadata for overridden settings' do
+        expect(setting(:finder_key)).to eq(:token)
+      end
+
+      it 'still falls back to global config for the rest' do
+        expect(required_attribute).to eq(:name)
+      end
+
+      it 'resolves model_attributes from metadata in the example context' do
+        expect(model_attributes).to eq(overridden: true)
+      end
     end
   end
 end

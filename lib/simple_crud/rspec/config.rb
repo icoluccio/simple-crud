@@ -14,10 +14,10 @@ module SimpleCrud
     # Serializers), so apps on a different stack can override them via
     # SimpleCrud::RSpec.configure instead of editing the examples.
     #
-    # Callable settings (authenticate, current_user, create_record,
-    # create_records, attributes_for, policy_class, serializer_class) run in
-    # the example-group context, so they can call helpers such as `create`,
-    # `request` and `current_user`.
+    # Callable settings (authenticate, current_user, other_user,
+    # create_record, create_records, params_for, model_attributes,
+    # policy_class, serializer_class) run in the example-group context, so
+    # they can call helpers such as `create`, `request` and `current_user`.
     class Config
       DEFAULTS = {
         authenticate: lambda {
@@ -30,6 +30,18 @@ module SimpleCrud
         create_records: ->(klass, count, attributes) { create_list(klass, count, **attributes) },
         params_for: ->(klass) { attributes_for(klass) },
         owner_association: :user,
+        model_attributes: -> { owner_association ? { owner_association => current_user } : {} },
+        scoped_attributes: -> { model_attributes },
+        other_scoped_attributes: lambda {
+          attributes = model_attributes
+          if owner_association && !attributes.is_a?(Hash)
+            raise ArgumentError,
+                  'model_attributes must resolve to a Hash when owner_association is set; ' \
+                  'override other_scoped_attributes instead'
+          end
+
+          owner_association ? attributes.merge(owner_association => other_user) : {}
+        },
         required_attribute: :name,
         required_error: "Name can't be blank",
         finder_key: :slug,
@@ -39,7 +51,8 @@ module SimpleCrud
         unauthenticated_status: :unauthorized,
         assert_html_template: true,
         policy_class: ->(klass) { "#{klass}Policy".constantize },
-        serializer_class: ->(model) { "#{model.class}_serializer".classify.constantize }
+        serializer_class: ->(model) { "#{model.class}_serializer".classify.constantize },
+        created_record_check: nil
       }.freeze
 
       class << self
