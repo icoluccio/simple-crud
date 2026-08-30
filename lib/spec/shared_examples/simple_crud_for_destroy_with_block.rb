@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-shared_examples 'simple crud for destroy with block' do
+RSpec.shared_examples 'simple crud for destroy with block' do
   describe 'DELETE #destroy with a render block' do
     include_context 'with authenticated user' if check_authenticate(:destroy)
 

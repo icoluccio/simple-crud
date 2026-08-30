@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-shared_examples 'simple crud when not authorized' do |action, verb, request_params = {}|
+RSpec.shared_examples 'simple crud when not authorized' do |action, verb, request_params = {}|
   if check_authorize(action)
     context 'when not authorized' do
       include_context 'with authenticated user' if check_authenticate(action)

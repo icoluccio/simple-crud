@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-shared_examples 'simple crud for show with finder' do
+RSpec.shared_examples 'simple crud for show with finder' do
   describe 'GET #show with a custom finder' do
     include_context 'with authenticated user' if check_authenticate(:show)
 

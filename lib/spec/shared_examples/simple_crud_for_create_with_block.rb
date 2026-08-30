@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-shared_examples 'simple crud for create with block' do
+RSpec.shared_examples 'simple crud for create with block' do
   describe 'POST #create with a render block' do
     context 'when successfully creating a record' do
       include_context 'with authenticated user' if check_authenticate(:create)

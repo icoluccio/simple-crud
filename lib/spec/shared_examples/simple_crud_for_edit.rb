@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-shared_examples 'simple crud for edit' do
+RSpec.shared_examples 'simple crud for edit' do
   describe 'GET #edit' do
     subject(:edit_request) { get :edit, params: with_route_params(edit_params), format: request_format(:edit) }
 

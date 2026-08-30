@@ -10,11 +10,6 @@ module RedirectAuth
 
     rescue_from UnauthenticatedError, with: :redirect_to_login
 
-    before_action :set_params
-    def set_params
-      SimpleCrudController.params = params
-    end
-
     def authenticate_user!
       raise UnauthenticatedError unless current_user
     end

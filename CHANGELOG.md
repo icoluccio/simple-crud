@@ -1,5 +1,20 @@
 ## Change log
 
+### V0.4.0
+
+Breaking:
+* Blocks given to `simple_crud_for` no longer imply `html: true`. HTML controllers with render blocks must pass `html: true` explicitly.
+
+New options:
+* `authenticate_headers:` controls whether shared examples set auth headers and run the unauthorized test, independent of `authenticate:`. Defaults to `authenticate:`. Set `authenticate: false, authenticate_headers: true` when a base-controller `before_action` handles auth so the lambda skips the call but tests still cover the auth path.
+* `simple_crud_defaults(options)` sets option defaults at the controller level. Subclasses inherit. Per-action options override. Precedence: gem defaults < controller defaults < per-action options.
+
+Fixes:
+* Use `RSpec.shared_examples` instead of the top-level alias, which is unavailable with `config.disable_monkey_patching!`.
+* Auto-require `SimpleCrud::Authorization::Adapter` on `require 'simple_crud'`.
+* Remove `cattr_accessor :params, :permitted` (thread-unsafe, never read by the gem). Remove the `set_params` boilerplate from host controllers.
+* Raise a clear error when `owner_association` names an attribute the model doesn't have, instead of a bare `NoMethodError` from FactoryBot.
+
 ### V0.3.1
 
 Shared examples configuration:

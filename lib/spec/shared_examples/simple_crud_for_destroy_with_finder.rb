@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-shared_examples 'simple crud for destroy with finder' do
+RSpec.shared_examples 'simple crud for destroy with finder' do
   describe 'DELETE #destroy with a custom finder' do
     include_context 'with authenticated user' if check_authenticate(:destroy)
 

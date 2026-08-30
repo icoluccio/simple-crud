@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-shared_examples 'simple crud for update with finder' do
+RSpec.shared_examples 'simple crud for update with finder' do
   describe 'PUT #update with a custom finder' do
     include_context 'with authenticated user' if check_authenticate(:update)
 

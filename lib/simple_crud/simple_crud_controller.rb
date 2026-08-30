@@ -11,12 +11,12 @@ module SimpleCrudController
   # Include, not extend: controllers gain these by extending SimpleCrudController.
   include SimpleCrud::ActionLambdas
 
-  cattr_accessor :params, :permitted
-
   # Possible options:
   ### authorize: check authorization via Config.authorization_adapter (Pundit by default)
   ### paginate: paginate the list via Config.pagination_adapter (wor-paginate by default)
-  ### authenticate: use devise to authenticate
+  ### authenticate: true calls authenticate_user! inside the action lambda; false skips it
+  ### authenticate_headers: whether shared examples set auth headers and run the unauthorized
+  ###   test (defaults to authenticate:); set independently when a base-controller before_action handles auth
   ### serializer: use a particular serializer (both each_serializer and serializer)
   ### html: render the action's ERB template instead of JSON (index/show/new/edit/create/update/destroy)
   ### finder: custom record lookup (Proc/lambda or Symbol) for :show/:update/:destroy/:edit
@@ -26,7 +26,6 @@ module SimpleCrudController
   ### A block given to simple_crud_for renders explicitly: it receives the records for :index,
   ### the record for :show/:new/:edit, or the record and a saved flag for :create/:update/:destroy
   def simple_crud_for(method, parameters = {}, &block)
-    parameters[:html] = true if block && !parameters.key?(:html)
     parameters[:block] = true if block
     parameters = parameters_with_defaults(parameters)
     klass = simple_crud_controller_model
@@ -37,12 +36,28 @@ module SimpleCrudController
     write_metadata(method, parameters)
   end
 
+  def simple_crud_defaults(options = {})
+    @simple_crud_defaults = simple_crud_inherited_defaults.merge(options)
+  end
+
+  def simple_crud_inherited_defaults
+    ancestors.each do |ancestor|
+      next unless ancestor.instance_variable_defined?(:@simple_crud_defaults)
+
+      return ancestor.instance_variable_get(:@simple_crud_defaults)
+    end
+    {}
+  end
+
   def parameters_with_defaults(parameters)
     defaults = {
-      authorize: true, paginate: true, authenticate: true, serializer: nil,
-      html: false, finder: nil, scope: nil, build: nil, raise_on_invalid: false
+      authorize: true, paginate: true, authenticate: true, authenticate_headers: nil,
+      serializer: nil, html: false, finder: nil, scope: nil, build: nil, raise_on_invalid: false
     }
-    defaults.each { |key, value| parameters[key] = value unless parameters.key?(key) }
+    defaults.merge(simple_crud_inherited_defaults).each do |key, value|
+      parameters[key] = value unless parameters.key?(key)
+    end
+    parameters[:authenticate_headers] = parameters[:authenticate] if parameters[:authenticate_headers].nil?
     parameters
   end
 

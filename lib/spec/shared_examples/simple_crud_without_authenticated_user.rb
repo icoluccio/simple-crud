@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-shared_examples 'simple crud without authenticated user' do |action|
+RSpec.shared_examples 'simple crud without authenticated user' do |action|
   context 'without authenticated user' do
     subject!(:req) { get action, params: with_route_params({}) }
 

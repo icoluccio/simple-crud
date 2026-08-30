@@ -2,7 +2,7 @@
 
 module BlockRedirect
   class DummyModelsController < HtmlModes::BaseController
-    simple_crud_for :destroy, authenticate: false, authorize: false do |_record, destroyed|
+    simple_crud_for :destroy, html: true, authenticate: false, authorize: false do |_record, destroyed|
       if destroyed
         redirect_to action: :show, notice: 'removed'
       else

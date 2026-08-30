@@ -15,7 +15,22 @@ module SimpleCrud
         end
 
         def model
-          @model ||= create_record(model_class, model_attributes)
+          @model ||= begin
+            validate_owner_association!
+            create_record(model_class, model_attributes)
+          end
+        end
+
+        def validate_owner_association!
+          assoc = owner_association
+          return unless assoc
+
+          klass = model_class_object
+          return if klass.method_defined?("#{assoc}=") || klass.column_names.include?(assoc.to_s)
+
+          raise "simple_crud: owner_association is :#{assoc} but #{klass} has no #{assoc}= setter. " \
+                'Set `simple_crud: { owner_association: nil }` in your describe block or ' \
+                'override model_attributes directly.'
         end
 
         def model_attributes

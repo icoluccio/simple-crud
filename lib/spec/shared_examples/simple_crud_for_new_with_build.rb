@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-shared_examples 'simple crud for new with build' do
+RSpec.shared_examples 'simple crud for new with build' do
   describe 'GET #new with a build hook' do
     include_context 'with authenticated user' if check_authenticate(:new)
 

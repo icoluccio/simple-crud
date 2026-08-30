@@ -18,6 +18,7 @@ SimpleCrud
         - [Serializer](#serializer)
         - [HTML](#html)
         - [Finder](#finder)
+      - [Controller-level defaults](#controller-level-defaults)
       - [Shared examples](#shared-examples)
   - [Contributing](#contributing)
   - [Releases](#releases)
@@ -68,12 +69,6 @@ Before SimpleCrud can be used, some boilerplate is needed. Add the following to 
 include Pundit::Authorization
 include Wor::Paginate
 extend SimpleCrudController
-
-before_action :set_params
-
-def set_params
-  SimpleCrudController.params = params
-end
 ```
 
 (Skip `include Pundit::Authorization` / `include Wor::Paginate` if you're using a different adapter, or `authorize: false` / `paginate: false` everywhere.)
@@ -105,7 +100,8 @@ simple_crud_for :index, paginate: false, authorize: false, serializer: CustomSer
 
 - Paginate: whether it should paginate or not. `true` paginates via the configured pagination adapter (wor-paginate by default), `false` doesn't paginate
 - Authorize: whether it should check authorization via the configured authorization adapter (Pundit by default)
-- Authenticate: whether it should use Devise to check for a current_user
+- Authenticate: whether the generated action calls `authenticate_user!`. `true` (default) or `false`
+- Authenticate_headers: whether shared examples set auth headers and run the unauthorized test. Defaults to `authenticate:`. Set independently when a base-controller `before_action` handles auth and the lambda should skip `authenticate_user!`
 - Serializer: specify a particular serializer you should use
 - Html: renders the action's ERB template instead of JSON (valid for `:index`, `:show`, `:new`, `:edit`, `:create`, `:update` and `:destroy`). Only meaningful in controllers that render templates
 - Scope: only valid for `:index`. A `Proc`/`lambda` taking `current_user` (plus the controller's `params` if it takes a second argument) that returns the relation to list, overriding the default `policy_scope`. The user is resolved via `SimpleCrud::Config.user_method` (`:current_user` by default; set it to e.g. `:current_admin`)
@@ -113,6 +109,22 @@ simple_crud_for :index, paginate: false, authorize: false, serializer: CustomSer
 - Build: only valid for `:new` and `:create`. A `Proc`/`lambda` that builds the record (invoked with the controller as `self`, so `current_user`, `params` and any instance variables are available), for building nested or owner-scoped records like `current_user.projects.build`. `:create` then assigns the permitted params to the built record before saving
 - Raise_on_invalid: only valid for `:create` and `:update`. Keeps the strict `create!`/`update!` semantics (raising on invalid input) instead of returning `422` with the validation errors
 - Redirect: only valid for HTML-mode `:create`, `:update` and `:destroy`. A `Proc`/`lambda` (called with the record) or a literal path used as the success redirect target. Defaults to the record (`:create`/`:update`) or the model's collection path (`:destroy`)
+
+#### Controller-level defaults
+
+`simple_crud_defaults` sets option defaults for every `simple_crud_for` in the controller. Subclasses inherit; per-action options override.
+
+```ruby
+class Api::BaseController < ActionController::API
+  extend SimpleCrudController
+  simple_crud_defaults authorize: false, authenticate: false, authenticate_headers: true
+end
+
+class Api::PostsController < Api::BaseController
+  simple_crud_for :show                    # inherits defaults
+  simple_crud_for :create, authorize: true # overrides for this action only
+end
+```
 
 You'll need a few things so they work correctly:
 
@@ -247,7 +259,13 @@ end
 ```
 
 #### Authenticate
-SimpleCrud will assume a current_user method. Future versions will support a custom model. Defining a current_user method in ApplicationController should work if you're using a different model, as of now.
+`authenticate: true` (default) calls `authenticate_user!` inside the generated action. `authenticate: false` skips it.
+
+If your base controller already runs `before_action :authenticate_user!`, set `authenticate: false` to avoid a double call and `authenticate_headers: true` so shared examples still cover the auth path:
+
+```ruby
+simple_crud_defaults authenticate: false, authenticate_headers: true
+```
 
 #### Serializer
 The name of the serializer, by default, is the name of the model followed by Serializer, as is the standard for [ActiveModelSerializers](https://github.com/rails-api/active_model_serializers). It's possible to just pass a custom serializer class though. As for the serializer itself, it's a standard serializer, with the gotcha that you need to include `:id` for the SimpleCrud examples to work.
@@ -279,15 +297,21 @@ simple_crud_for :update, html: true
 simple_crud_for :destroy, html: true
 ```
 
-Or pass a block that renders explicitly, overriding the auto-render. The block receives the records for `:index`, the record for `:show`/`:new`, or the record plus a saved flag for `:create`/`:update`/`:destroy`. Passing a block also implies `html: true` for the shared examples (so a server-rendered block is asserted as HTML); if your block renders JSON instead, pass `html: false` explicitly:
+Or pass a block that renders explicitly, overriding the auto-render. The block receives the records for `:index`, the record for `:show`/`:new`, or the record plus a saved flag for `:create`/`:update`/`:destroy`. Blocks do not change the `html:` default; pass it explicitly so the shared examples know which request format to use:
 
 ```ruby
-simple_crud_for :index do |records|
+# Server-rendered block: pass html: true so shared examples send HTML requests
+simple_crud_for :index, html: true do |records|
   render :index, locals: { models: records }
 end
 
-simple_crud_for :create do |record, saved|
+simple_crud_for :create, html: true do |record, saved|
   saved ? redirect_to(record) : render(:new, locals: { model: record })
+end
+
+# API block: html: false is the default
+simple_crud_for :show, html: false do |record|
+  render json: record.as_json(only: %i[id name])
 end
 ```
 
@@ -320,7 +344,7 @@ simple_crud_for :destroy, finder: ->(params) { current_user.models.find(params[:
 When omitted it defaults to `klass.find(params[:id])`, and `not_found` is still returned whenever the finder finds no record.
 
 ### Shared examples
-While optional, using the included shared examples saves you from writing the standard test cases for the methods. You can even use them if you didn't use `simple_crud_for`, as a set of basic tests. To include them, just add `require 'simple_crud/rspec'` to your `rails_helper.rb` file and add the lines you need to your `*_spec.rb` files:
+While optional, using the included shared examples saves you from writing the standard test cases for the methods. You can even use them if you didn't use `simple_crud_for`, as a set of basic tests. To include them, add `require 'simple_crud/rspec'` to your `rails_helper.rb` **after** `require "rspec/rails"`, then add the lines you need to your `*_spec.rb` files:
 ```ruby
 require 'rails_helper'
 
