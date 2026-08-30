@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-shared_examples 'simple crud for show' do
+RSpec.shared_examples 'simple crud for show' do
   describe 'GET #show' do
     subject(:show_request) { get :show, params: with_route_params(show_params), format: request_format(:show) }
 

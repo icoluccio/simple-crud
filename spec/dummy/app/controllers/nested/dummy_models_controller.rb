@@ -6,11 +6,6 @@ module Nested
     include Pundit::Authorization
     extend SimpleCrudController
 
-    before_action :set_params
-    def set_params
-      SimpleCrudController.params = params
-    end
-
     def dummy_model_params
       params.require(:dummy_model).permit(:name, :something, :user_id, :slug)
     end

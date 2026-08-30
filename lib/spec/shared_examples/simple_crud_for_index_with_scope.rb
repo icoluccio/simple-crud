@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-shared_examples 'simple crud for index with scope' do
+RSpec.shared_examples 'simple crud for index with scope' do
   let(:request_params) { {} }
   let(:my_models) { create_records(model_class, 2, scoped_attributes) }
   let(:other_models) { create_records(model_class, 3, other_scoped_attributes) }

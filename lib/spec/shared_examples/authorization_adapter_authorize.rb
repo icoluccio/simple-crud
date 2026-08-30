@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-shared_examples 'authorization adapter #authorize' do |record_class, denied_error|
+RSpec.shared_examples 'authorization adapter #authorize' do |record_class, denied_error|
   it 'passes for a record the adapter allows' do
     expect { adapter.authorize(controller, record_class.new(1)) }.not_to raise_error
   end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-shared_examples 'simple crud for new with block' do
+RSpec.shared_examples 'simple crud for new with block' do
   describe 'GET #new with a render block' do
     include_context 'with authenticated user' if check_authenticate(:new)
 

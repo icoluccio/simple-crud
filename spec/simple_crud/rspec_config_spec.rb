@@ -82,6 +82,12 @@ describe SimpleCrud::RSpec do
       expect(model_attributes).to eq(user: current_user)
     end
 
+    it 'raises a clear error when owner_association has no setter on the model' do
+      klass = Class.new { def self.column_names = [] }
+      allow(self).to receive_messages(owner_association: :nonexistent, model_class_object: klass)
+      expect { validate_owner_association! }.to raise_error(/owner_association is :nonexistent/)
+    end
+
     describe 'with simple_crud metadata',
              simple_crud: { finder_key: :token, model_attributes: -> { { overridden: true } } } do
       it 'prefers metadata for overridden settings' do

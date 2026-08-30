@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-shared_examples 'simple crud for create' do
+RSpec.shared_examples 'simple crud for create' do
   describe 'POST #create' do
     context 'without authenticated user' do
       subject!(:req) do

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-shared_examples 'simple crud for create with build' do
+RSpec.shared_examples 'simple crud for create with build' do
   describe 'POST #create with a build hook' do
     include_context 'with authenticated user' if check_authenticate(:create)
 

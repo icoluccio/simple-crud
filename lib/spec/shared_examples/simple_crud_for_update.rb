@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-shared_examples 'simple crud for update' do
+RSpec.shared_examples 'simple crud for update' do
   describe 'PUT #update' do
     context 'without authenticated user' do
       subject!(:req) do

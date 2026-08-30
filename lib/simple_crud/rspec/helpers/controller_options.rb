@@ -10,8 +10,13 @@ module SimpleCrud
           described_class.instance_variable_get(:@simple_crud_metadata)[method][option]
         end
 
-        %i[paginate authorize authenticate serializer html finder scope build raise_on_invalid block].each do |option|
+        %i[paginate authorize authenticate serializer html finder scope build raise_on_invalid block
+           authenticate_headers].each do |option|
           define_method("check_#{option}") { |method| get_option(method, option) }
+        end
+
+        def check_authenticate(method)
+          check_authenticate_headers(method)
         end
       end
     end

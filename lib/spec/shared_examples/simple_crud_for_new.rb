@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-shared_examples 'simple crud for new' do
+RSpec.shared_examples 'simple crud for new' do
   describe 'GET #new' do
     include_examples 'simple crud without authenticated user', :new
     include_examples 'simple crud when not authorized', :new, :get

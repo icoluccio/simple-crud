@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-shared_examples 'simple crud for destroy' do
+RSpec.shared_examples 'simple crud for destroy' do
   describe 'DELETE #destroy' do
     context 'without authenticated user' do
       subject!(:req) do
