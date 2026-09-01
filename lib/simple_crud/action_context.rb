@@ -6,6 +6,10 @@ module SimpleCrud
 
     attr_reader :controller, :klass, :parameters, :block
 
+    def self.cache_key_for(model, action, path)
+      "#{model.model_name.singular}:#{action}:v1:#{path}"
+    end
+
     def initialize(controller, klass, parameters, &block)
       @controller = controller
       @klass      = klass
@@ -64,10 +68,19 @@ module SimpleCrud
       { key => parameters[:serializer] }.compact
     end
 
+    def render_record(record, template)
+      if parameters[:html] || block
+        controller.instance_variable_set(:@record, record)
+        block ? controller.instance_exec(record, &block) : controller.render(template)
+      else
+        controller.render({ json: record }.merge(serialize_opts(:serializer)))
+      end
+    end
+
     def render_cached(cache_opts, &fetch_block)
       key    = resolve_cache_key(cache_opts)
       ttl    = cache_opts[:ttl] || DEFAULT_CACHE_TTL
-      result = controller.fetch_cached(key, ttl, &fetch_block)
+      result = controller.send(:fetch_cached, key, ttl, &fetch_block)
       controller.render json: result
     end
 
@@ -79,7 +92,7 @@ module SimpleCrud
     end
 
     def default_cache_key
-      "#{klass.model_name.singular}:#{action_name}:v1:#{controller.request.fullpath}"
+      self.class.cache_key_for(klass, action_name, controller.request.fullpath)
     end
   end
 end

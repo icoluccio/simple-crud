@@ -9,10 +9,10 @@ module SimpleCrud
     def run
       maybe_authorize(klass)
       cache_opts = parameters[:cache]
-      cache_opts ? render_cached(cache_opts) { execute } : render_index
+      cache_opts ? render_cached(cache_opts) { payload } : render_index
     end
 
-    def execute
+    def payload
       opts     = serialize_opts(:each_serializer)
       relation = index_relation
       records  = index_records(relation, opts)

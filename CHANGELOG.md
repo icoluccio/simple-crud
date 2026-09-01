@@ -1,9 +1,10 @@
 ## Change log
 
-### Unreleased
+### V0.5.0
 
 New options:
-* `cache: { key:, ttl: }` on `simple_crud_for :show` and `:index` — skips the DB on cache hits. On a miss: find/query, authorize, call block, cache, render. `key` is a lambda receiving `params` or a plain string; both default when omitted (`"#{model}:#{action}:v1:#{request.fullpath}"` and 300 s). Block must return the payload hash instead of calling `render`. `@record`/`@records` is set before the block, so shared examples work unchanged. Controllers get a default `fetch_cached(key, ttl, &block)` backed by `Rails.cache`; override in the controller to use a different store.
+* `cache: { key:, ttl: }` on `simple_crud_for :show` and `:index` — skips the DB on cache hits. On a miss: find/query, authorize, run block, cache, render. `key` is a lambda receiving `params` or a plain string; both default when omitted (`"#{model}:#{action}:v1:#{request.fullpath}"` and 300 s). Block must return the payload hash, not call `render`. `@record`/`@records` is set before the block, so shared examples work unchanged. Controllers get a default `fetch_cached(key, ttl, &block)` backed by `Rails.cache`; override to use a different store.
+* `expire_simple_crud_cache(action, path: request.fullpath)` on controllers — deletes the default cache key for an action without constructing it by hand. Only works for the default key format; custom `key:` lambdas must be deleted directly.
 
 ### V0.4.0
 

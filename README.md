@@ -347,7 +347,7 @@ When omitted it defaults to `klass.find(params[:id])`, and `not_found` is still 
 #### Cache
 Pass `cache: { key:, ttl: }` on `:show` or `:index` to skip the DB on cache hits.
 
-`key` is a lambda receiving `params`, or a plain string. Both `key` and `ttl` are optional — defaults are `"#{model}:#{action}:v1:#{request.fullpath}"` and 300 seconds. With `cache:` the block must return the payload hash instead of calling `render`. `@record`/`@records` is set before the block, so shared examples work unchanged.
+`key` is a lambda receiving `params`, or a plain string. Both `key` and `ttl` are optional — defaults are `"#{model}:#{action}:v1:#{request.fullpath}"` and 300 seconds. With `cache:` the block must return the payload hash, not call `render`. `@record`/`@records` is set before the block, so shared examples work unchanged.
 
 Controllers get a default `fetch_cached(key, ttl, &block)` backed by `Rails.cache`. Override to use a different store:
 
@@ -375,7 +375,14 @@ simple_crud_for :index, paginate: false, cache: {} do |articles|
 end
 ```
 
-Invalidate on write by deleting the key directly:
+Invalidate on write. For the default key format, `expire_simple_crud_cache(action)` deletes it without constructing it by hand:
+
+```ruby
+expire_simple_crud_cache(:show)
+expire_simple_crud_cache(:index)
+```
+
+For a custom `key:` lambda, delete the key yourself:
 
 ```ruby
 def update

@@ -15,4 +15,20 @@ describe CachedDefaults::DummyModelsController, type: :controller do
       expect(response.parsed_body.length).to eq(2)
     end
   end
+
+  describe 'expire_simple_crud_cache' do
+    let!(:record) { create(:dummy_model) }
+
+    context 'when called after a cached show' do
+      before { get :show, params: { id: record.id } }
+
+      it 'clears the entry so the next request fetches fresh data' do
+        first_body = response.parsed_body
+        record.update!(name: 'updated')
+        controller.expire_simple_crud_cache(:show)
+        get :show, params: { id: record.id }
+        expect(response.parsed_body).not_to eq(first_body)
+      end
+    end
+  end
 end
