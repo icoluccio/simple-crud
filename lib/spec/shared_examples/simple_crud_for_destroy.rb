@@ -52,7 +52,7 @@ RSpec.shared_examples 'simple crud for destroy' do
       before do
         model
         allow(model).to receive(:destroy).and_return(false)
-        allow(SimpleCrudController).to receive(:find_record).and_return(model)
+        allow_any_instance_of(SimpleCrud::DestroyContext).to receive(:find_record).and_return(model)
         delete :destroy, params: with_route_params(record_param(:destroy, model)), format: request_format(:destroy)
       end
 

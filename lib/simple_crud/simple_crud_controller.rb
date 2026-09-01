@@ -2,14 +2,25 @@
 
 require 'active_support/all'
 require_relative 'config'
-require_relative 'controller_helpers'
+require_relative 'cache_helpers'
+require_relative 'action_context'
+require_relative 'persistence_context'
+require_relative 'show_context'
+require_relative 'index_context'
+require_relative 'new_context'
+require_relative 'edit_context'
+require_relative 'create_context'
+require_relative 'update_context'
+require_relative 'destroy_context'
 require_relative 'action_lambdas'
 
 # Extended onto a controller for CRUD actions.
 module SimpleCrudController
-  extend SimpleCrud::ControllerHelpers
-  # Include, not extend: controllers gain these by extending SimpleCrudController.
   include SimpleCrud::ActionLambdas
+
+  def self.extended(base)
+    base.include(SimpleCrud::CacheHelpers)
+  end
 
   # Possible options:
   ### authorize: check authorization via Config.authorization_adapter (Pundit by default)
