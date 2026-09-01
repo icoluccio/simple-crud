@@ -4,6 +4,14 @@ Rails.application.routes.draw do
   devise_for :users
   resources :dummy_models
 
+  namespace :cached do
+    resources :dummy_models, only: :show, param: :slug
+  end
+
+  namespace :cached_defaults do
+    resources :dummy_models, only: %i[show index]
+  end
+
   namespace :without_pagination do
     resources :dummy_models, only: :index
   end

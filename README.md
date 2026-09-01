@@ -18,6 +18,7 @@ SimpleCrud
         - [Serializer](#serializer)
         - [HTML](#html)
         - [Finder](#finder)
+        - [Cache](#cache)
       - [Controller-level defaults](#controller-level-defaults)
       - [Shared examples](#shared-examples)
   - [Contributing](#contributing)
@@ -342,6 +343,51 @@ simple_crud_for :destroy, finder: ->(params) { current_user.models.find(params[:
 ```
 
 When omitted it defaults to `klass.find(params[:id])`, and `not_found` is still returned whenever the finder finds no record.
+
+#### Cache
+Pass `cache: { key:, ttl: }` on `:show` or `:index` to skip the DB on cache hits.
+
+`key` is a lambda receiving `params`, or a plain string. Both `key` and `ttl` are optional — defaults are `"#{model}:#{action}:v1:#{request.fullpath}"` and 300 seconds. With `cache:` the block must return the payload hash instead of calling `render`. `@record`/`@records` is set before the block, so shared examples work unchanged.
+
+Controllers get a default `fetch_cached(key, ttl, &block)` backed by `Rails.cache`. Override to use a different store:
+
+```ruby
+# Override with a direct Redis connection
+def fetch_cached(key, ttl)
+  cached = redis.get(key)
+  return JSON.parse(cached, symbolize_names: true) if cached
+
+  result = yield
+  redis.setex(key, ttl, result.to_json)
+  result
+end
+
+# All options explicit
+simple_crud_for :show,
+                finder: ->(p) { Article.includes(:author).find(p[:id]) },
+                cache: { key: ->(p) { "article:v1:#{p[:id]}" }, ttl: 900 } do |article|
+  article_payload(article)
+end
+
+# All defaults — key and TTL inferred from model name and params
+simple_crud_for :index, paginate: false, cache: {} do |articles|
+  articles.map { |a| article_summary(a) }
+end
+```
+
+Invalidate on write by deleting the key directly:
+
+```ruby
+def update
+  article = current_user.articles.find(params[:id])
+  if article.update(article_params)
+    redis.del("article:v1:#{article.id}")
+    render json: article_payload(article)
+  else
+    render json: { errors: article.errors.full_messages }, status: :unprocessable_entity
+  end
+end
+```
 
 ### Shared examples
 While optional, using the included shared examples saves you from writing the standard test cases for the methods. You can even use them if you didn't use `simple_crud_for`, as a set of basic tests. To include them, add `require 'simple_crud/rspec'` to your `rails_helper.rb` **after** `require "rspec/rails"`, then add the lines you need to your `*_spec.rb` files:

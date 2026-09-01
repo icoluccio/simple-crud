@@ -1,6 +1,10 @@
 plugins:
   - rubocop-rspec
 
+inherit_mode:
+  merge:
+    - Exclude
+
 AllCops:
   TargetRubyVersion: 3.2
   NewCops: disable
@@ -14,3 +18,14 @@ RSpec/SpecFilePathFormat:
 RSpec/SpecFilePathSuffix:
   Exclude:
     - spec/dummy_controller_spec.rb
+
+# Context class names are self-documenting; comments would be noise.
+Style/Documentation:
+  Exclude:
+    - lib/simple_crud/*_context.rb
+
+# The destroy failure spec must stub find_record on the instance to intercept
+# both default (klass.find) and custom-finder (lambda) lookup paths.
+RSpec/AnyInstance:
+  Exclude:
+    - lib/spec/shared_examples/simple_crud_for_destroy.rb
