@@ -17,7 +17,14 @@ module SimpleCrud
       relation = index_relation
       records  = index_records(relation, opts)
       controller.instance_variable_set(:@records, records)
-      block ? controller.instance_exec(records, &block) : records.as_json
+      block ? controller.instance_exec(records, &block) : serialize_records(records)
+    end
+
+    def serialize_records(records)
+      serializer = parameters[:serializer]
+      return records.as_json if serializer.nil?
+
+      records.map { |record| SimpleCrud::Serializer.render(serializer, record, serializer_options) }
     end
 
     def render_index
@@ -28,7 +35,7 @@ module SimpleCrud
       elsif parameters[:paginate]
         SimpleCrud::Config.pagination_adapter.paginate(controller, relation, opts)
       else
-        controller.render({ json: relation }.merge(opts))
+        controller.render json: serialize_records(relation)
       end
     end
 
@@ -50,7 +57,7 @@ module SimpleCrud
 
     def call_scope
       user_method = SimpleCrud::Config.user_method
-      user = controller.respond_to?(user_method) ? controller.public_send(user_method) : nil
+      user = controller.respond_to?(user_method, true) ? controller.send(user_method) : nil
       scope = parameters[:scope]
       scope.arity == 1 ? scope.call(user) : scope.call(user, controller.params)
     end

@@ -8,7 +8,7 @@ RSpec.shared_examples 'simple crud for show with finder' do
       before do
         model
         get :show, params: with_route_params(finder_key => model.public_send(finder_key)),
-                   format: request_format(:show)
+                   format: format_param(:show)
       end
 
       if check_block(:show)

@@ -19,4 +19,23 @@ describe SimpleCrud::ActionContext do
       expect(key).to eq('dummy_model:show:v1:/dummy_models/1')
     end
   end
+
+  describe '#serializer_options' do
+    let(:record) { DummyModel.new(name: 'widget') }
+
+    it 'returns an empty hash when no callable is configured' do
+      ctx = described_class.new(double, DummyModel, {})
+      expect(ctx.send(:serializer_options, record)).to eq({})
+    end
+
+    it 'calls a zero-arity callable without the record' do
+      ctx = described_class.new(double, DummyModel, { serializer_options: -> { { prefix: :none } } })
+      expect(ctx.send(:serializer_options, record)).to eq(prefix: :none)
+    end
+
+    it 'calls an arity-one callable with the record' do
+      ctx = described_class.new(double, DummyModel, { serializer_options: ->(record) { { name: record.name } } })
+      expect(ctx.send(:serializer_options, record)).to eq(name: 'widget')
+    end
+  end
 end

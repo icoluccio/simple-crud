@@ -12,7 +12,7 @@ RSpec.shared_examples 'simple crud for update with finder' do
 
       before do
         model
-        put :update, params: update_params, format: request_format(:update)
+        put :update, params: update_params, format: format_param(:update)
       end
 
       it 'updates the model' do

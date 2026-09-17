@@ -10,7 +10,13 @@ module SimpleCrud
       include Adapter
 
       def paginate(controller, relation, options)
-        controller.send(:render_paginated, relation, options)
+        serializer = options[:each_serializer]
+        return controller.send(:render_paginated, relation, options) if serializer.nil?
+
+        serializer_options = options[:serializer_options] || {}
+        controller.send(:render_paginated, relation, options) do |record|
+          SimpleCrud::Serializer.render(serializer, record, serializer_options)
+        end
       end
 
       def paginated_records(controller, relation, options)

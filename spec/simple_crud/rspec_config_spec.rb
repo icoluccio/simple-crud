@@ -58,6 +58,19 @@ describe SimpleCrud::RSpec do
       SimpleCrud::RSpec.configure { |c| c.required_attribute = original }
       expect(config.required_attribute).to eq(:name)
     end
+
+    describe 'the default serializer_class' do
+      it 'prefers the AMS serializer when the constant exists' do
+        expect(config.serializer_class.call(DummyModel.new)).to eq(DummyModelSerializer)
+      end
+
+      it 'falls back to the Blueprint when there is no AMS serializer' do
+        allow(Kernel).to receive(:const_defined?).and_call_original
+        allow(Kernel).to receive(:const_defined?).with('DummyModelSerializer').and_return(false)
+
+        expect(config.serializer_class.call(DummyModel.new)).to eq(DummyModelBlueprint)
+      end
+    end
   end
 
   describe SimpleCrud::RSpec::Helpers do

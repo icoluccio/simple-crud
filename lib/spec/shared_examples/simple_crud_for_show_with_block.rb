@@ -8,7 +8,7 @@ RSpec.shared_examples 'simple crud for show with block' do
 
     before do
       make_policies_succeed(:show) if check_authorize(:show)
-      get :show, params: with_route_params(record_param(:show, record)), format: request_format(:show)
+      get :show, params: with_route_params(record_param(:show, record)), format: format_param(:show)
     end
 
     if check_html(:show)

@@ -10,7 +10,8 @@ module SimpleCrud
       record.assign_attributes(attrs)
       maybe_authorize(record)
       persist = ->(bang:) { bang ? record.save! : record.save }
-      options = { status: :created, failure_template: :new, redirect: parameters[:redirect] || record }
+      options = { status: parameters[:status] || :created, failure_template: :new,
+                  redirect: parameters[:redirect] || record }
       persist_and_render(record, options, persist)
     end
   end

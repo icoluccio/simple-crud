@@ -11,8 +11,11 @@ module SimpleCrud
           Rack::Utils::SYMBOL_TO_STATUS_CODE.invert[422]
         end
 
-        def request_format(action)
-          check_html(action) ? :html : :json
+        # Rails copies the controller-test `format:` kwarg into params, which
+        # collides with a model attribute named `format`. Only HTML requests
+        # need it, so leave params untouched for JSON.
+        def format_param(action)
+          check_html(action) ? :html : nil
         end
 
         # Extra params (e.g. a parent slug) added to every request, for nested

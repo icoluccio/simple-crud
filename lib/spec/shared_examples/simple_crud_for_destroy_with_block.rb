@@ -7,7 +7,7 @@ RSpec.shared_examples 'simple crud for destroy with block' do
     let!(:record) { model }
 
     before do
-      delete :destroy, params: with_route_params(record_param(:destroy, record)), format: request_format(:destroy)
+      delete :destroy, params: with_route_params(record_param(:destroy, record)), format: format_param(:destroy)
     end
 
     it 'passes the destroyed record to the block' do

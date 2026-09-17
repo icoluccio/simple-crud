@@ -5,7 +5,7 @@ RSpec.shared_examples 'simple crud for new with build' do
     include_context 'with authenticated user' if check_authenticate(:new)
 
     before do
-      get :new, params: with_route_params({}), format: request_format(:new)
+      get :new, params: with_route_params({}), format: format_param(:new)
     end
 
     it 'builds the record owned by the current user', :aggregate_failures do

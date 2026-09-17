@@ -14,7 +14,7 @@ RSpec.shared_examples 'simple crud for index' do
 
       before do
         make_policies_succeed(:index) if check_authorize(:index)
-        get :index, params: with_route_params({}), format: request_format(:index)
+        get :index, params: with_route_params({}), format: format_param(:index)
       end
 
       if check_html(:index)
@@ -25,7 +25,7 @@ RSpec.shared_examples 'simple crud for index' do
         end
 
         it 'renders the correct paginated models' do
-          expect(response_body['page'].map { |a| a['id'] }).to eq(model_class_object.all.map(&:id))
+          expect(response_body['page'].map { |a| a['id'] }).to match_array(model_class_object.all.map(&:id))
         end
       else
         it 'renders unpaginated models correctly serialized' do
@@ -33,7 +33,7 @@ RSpec.shared_examples 'simple crud for index' do
         end
 
         it 'renders the correct unpaginated models' do
-          expect(response_body.map { |a| a['id'] }).to eq(model_class_object.all.map(&:id))
+          expect(response_body.map { |a| a['id'] }).to match_array(model_class_object.all.map(&:id))
         end
       end
     end

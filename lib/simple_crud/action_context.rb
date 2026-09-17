@@ -50,10 +50,14 @@ module SimpleCrud
 
     def lookup_record
       finder = parameters[:finder]
-      return klass.find(controller.params[:id]) if finder.nil?
+      return find_by_id if finder.nil?
       return klass.send(finder, controller.params) unless finder.respond_to?(:call)
 
-      finder.call(controller.params)
+      controller.instance_exec(controller.params, &finder)
+    end
+
+    def find_by_id
+      klass.find(controller.params[:id])
     end
 
     def build_record
@@ -65,16 +69,33 @@ module SimpleCrud
     end
 
     def serialize_opts(key)
-      { key => parameters[:serializer] }.compact
+      opts = { key => parameters[:serializer] }.compact
+      options = serializer_options
+      opts[:serializer_options] = options if options.present?
+      opts
+    end
+
+    def serializer_options(record = nil)
+      callable = parameters[:serializer_options]
+      return {} unless callable
+
+      callable.arity.zero? ? controller.instance_exec(&callable) : controller.instance_exec(record, &callable)
     end
 
     def render_record(record, template)
-      if parameters[:html] || block
-        controller.instance_variable_set(:@record, record)
-        block ? controller.instance_exec(record, &block) : controller.render(template)
-      else
-        controller.render({ json: record }.merge(serialize_opts(:serializer)))
-      end
+      return render_html_record(record, template) if parameters[:html] || block
+
+      render_json_record(record)
+    end
+
+    def render_html_record(record, template)
+      controller.instance_variable_set(:@record, record)
+      block ? controller.instance_exec(record, &block) : controller.render(template)
+    end
+
+    def render_json_record(record)
+      serializer = parameters[:serializer]
+      controller.render json: SimpleCrud::Serializer.render(serializer, record, serializer_options(record))
     end
 
     def render_cached(cache_opts, &fetch_block)

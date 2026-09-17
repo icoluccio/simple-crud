@@ -8,7 +8,7 @@ RSpec.shared_examples 'simple crud for destroy with finder' do
       before do
         model
         delete :destroy, params: with_route_params(finder_key => model.public_send(finder_key)),
-                         format: request_format(:destroy)
+                         format: format_param(:destroy)
       end
 
       it 'destroys the model' do
@@ -24,8 +24,8 @@ RSpec.shared_examples 'simple crud for destroy with finder' do
           expect(response).to have_http_status(:found)
         end
       else
-        it 'responds with ok status' do
-          expect(response).to have_http_status(:ok)
+        it 'responds with the configured status code' do
+          expect(response).to have_http_status(check_status(:destroy) || :ok)
         end
       end
     end

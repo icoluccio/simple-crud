@@ -19,7 +19,8 @@ module SimpleCrud
         end
 
         def owner_foreign_key
-          :"#{owner_association}_id"
+          reflection = model_class_object.reflect_on_association(owner_association)
+          reflection ? reflection.foreign_key : :"#{owner_association}_id"
         end
 
         # The owner association attributed to current_user, if the model has one.

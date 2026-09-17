@@ -7,7 +7,7 @@ RSpec.shared_examples 'simple crud for create with block' do
       let(:create_params) { model_params.merge(owner_params) }
 
       before do
-        post :create, params: with_route_params(body_params(create_params)), format: request_format(:create)
+        post :create, params: with_route_params(body_params(create_params)), format: format_param(:create)
       end
 
       it 'passes the saved record to the block' do
@@ -24,7 +24,7 @@ RSpec.shared_examples 'simple crud for create with block' do
         include_context 'with authenticated user' if check_authenticate(:create)
 
         before do
-          post :create, params: with_route_params(body_params(owner_params)), format: request_format(:create)
+          post :create, params: with_route_params(body_params(owner_params)), format: format_param(:create)
         end
 
         it 'does not create a model' do

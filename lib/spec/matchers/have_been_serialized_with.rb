@@ -4,10 +4,27 @@ RSpec::Matchers.define :have_been_serialized_with do |serializer|
   # TODO: Add support for optional relations `has_many :zarasa, if: zarasa2`
   # TODO: Support multilevel serialization
   match do |json_response|
+    attributes  = serializer_attributes(serializer)
+    reflections = serializer_reflections(serializer)
+
     [json_response].flatten.all? do |json_response_item|
-      all_attributes_included?(serializer._attributes, json_response_item) &&
-        all_attributes_included?(serializer._reflections.keys, json_response_item)
+      all_attributes_included?(attributes, json_response_item) &&
+        all_attributes_included?(reflections, json_response_item)
     end
+  end
+
+  # Blueprinter blueprints expose their fields through the view collection;
+  # ActiveModelSerializers expose `._attributes` / `._reflections`.
+  def serializer_attributes(serializer)
+    return serializer._attributes unless serializer.respond_to?(:view_collection)
+
+    serializer.view_collection.fields_for(:default).map(&:name)
+  end
+
+  def serializer_reflections(serializer)
+    return serializer._reflections.keys unless serializer.respond_to?(:view_collection)
+
+    []
   end
 
   failure_message do |json_response|

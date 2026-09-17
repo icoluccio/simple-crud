@@ -2,6 +2,7 @@
 
 require 'active_support/all'
 require_relative 'config'
+require_relative 'serializer'
 require_relative 'cache_helpers'
 require_relative 'action_context'
 require_relative 'persistence_context'
@@ -63,7 +64,8 @@ module SimpleCrudController
   def parameters_with_defaults(parameters)
     defaults = {
       authorize: true, paginate: true, authenticate: true, authenticate_headers: nil,
-      serializer: nil, html: false, finder: nil, scope: nil, build: nil, raise_on_invalid: false
+      serializer: nil, serializer_options: nil, status: nil, after_persist: nil, html: false,
+      finder: nil, scope: nil, build: nil, raise_on_invalid: false
     }
     defaults.merge(simple_crud_inherited_defaults).each do |key, value|
       parameters[key] = value unless parameters.key?(key)

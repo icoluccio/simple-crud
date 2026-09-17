@@ -8,7 +8,7 @@ RSpec.shared_examples 'simple crud for index with block' do
 
     before do
       created_models
-      get :index, params: with_route_params({}), format: request_format(:index)
+      get :index, params: with_route_params({}), format: format_param(:index)
     end
 
     if check_html(:index)
