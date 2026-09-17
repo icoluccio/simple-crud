@@ -10,7 +10,7 @@ RSpec.shared_examples 'simple crud for new' do
 
       before do
         make_policies_succeed(:new) if check_authorize(:new)
-        get :new, params: with_route_params({}), format: request_format(:new)
+        get :new, params: with_route_params({}), format: format_param(:new)
       end
 
       it 'responds with ok status' do

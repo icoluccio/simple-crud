@@ -103,7 +103,10 @@ simple_crud_for :index, paginate: false, authorize: false, serializer: CustomSer
 - Authorize: whether it should check authorization via the configured authorization adapter (Pundit by default)
 - Authenticate: whether the generated action calls `authenticate_user!`. `true` (default) or `false`
 - Authenticate_headers: whether shared examples set auth headers and run the unauthorized test. Defaults to `authenticate:`. Set independently when a base-controller `before_action` handles auth and the lambda should skip `authenticate_user!`
-- Serializer: specify a particular serializer you should use
+- Serializer: specify a particular serializer you should use. Accepts an ActiveModelSerializers serializer or a Blueprinter blueprint (see [Serializer](#serializer))
+- Serializer_options: a `Proc`/`lambda` that runs with the controller as `self`. Its result goes to the serializer: `render_as_hash(record, options)` for Blueprinter, `new(record, options)` for ActiveModelSerializers. Arity 0 runs without arguments; arity ≥ 1 receives the record. On `:index` it runs once with no record
+- Status: only valid for `:create`, `:update` and `:destroy`. Overrides the success status (`:created`, `:ok` and `:ok` by default). `status: :no_content` responds with an empty body
+- After_persist: only valid for `:create`, `:update` and `:destroy`. A `Proc`/`lambda` `->(record, saved) { ... }` that runs with the controller as `self`, after the write and before rendering. Use it for side effects like cache invalidation. It still runs when you pass a render block
 - Html: renders the action's ERB template instead of JSON (valid for `:index`, `:show`, `:new`, `:edit`, `:create`, `:update` and `:destroy`). Only meaningful in controllers that render templates
 - Scope: only valid for `:index`. A `Proc`/`lambda` taking `current_user` (plus the controller's `params` if it takes a second argument) that returns the relation to list, overriding the default `policy_scope`. The user is resolved via `SimpleCrud::Config.user_method` (`:current_user` by default; set it to e.g. `:current_admin`)
 - Finder: only valid for `:show`, `:update`, `:destroy` and `:edit`. A `Proc`/`lambda` (invoked with the controller's params) or a `Symbol` naming a class method on the model, used to look up the record instead of `klass.find(params[:id])`.
@@ -269,12 +272,22 @@ simple_crud_defaults authenticate: false, authenticate_headers: true
 ```
 
 #### Serializer
-The name of the serializer, by default, is the name of the model followed by Serializer, as is the standard for [ActiveModelSerializers](https://github.com/rails-api/active_model_serializers). It's possible to just pass a custom serializer class though. As for the serializer itself, it's a standard serializer, with the gotcha that you need to include `:id` for the SimpleCrud examples to work.
+`serializer:` picks the serializer for JSON responses on every action. Pass either an [ActiveModelSerializers](https://github.com/rails-api/active_model_serializers) serializer class, which simple_crud builds per record with `serializer.new(record, serializer_options)`, or a [Blueprinter](https://github.com/blueprinter/blueprinter) blueprint class, which it renders with `blueprint.render_as_hash(record, serializer_options)`.
+
+Without `serializer:`, the response uses the record's `as_json`. The shared examples expect an `:id` attribute. Paginated `:index` with Blueprinter needs wor-paginate ≥ 0.5.
 
 ```ruby
 class AuthorSerializer < ActiveModel::Serializer
-  attributes :email, :first_name, :last_name, :institution, :role, :id
+  attributes :email, :first_name, :last_name, :id
 end
+
+class AuthorBlueprint < Blueprinter::Base
+  identifier :id
+  fields :email, :first_name, :last_name
+end
+
+simple_crud_for :show, serializer: AuthorBlueprint
+simple_crud_for :index, serializer: AuthorBlueprint, serializer_options: -> { { current_user: current_user } }
 ```
 
 #### HTML

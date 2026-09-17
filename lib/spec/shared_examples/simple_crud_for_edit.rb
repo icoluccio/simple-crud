@@ -2,7 +2,7 @@
 
 RSpec.shared_examples 'simple crud for edit' do
   describe 'GET #edit' do
-    subject(:edit_request) { get :edit, params: with_route_params(edit_params), format: request_format(:edit) }
+    subject(:edit_request) { get :edit, params: with_route_params(edit_params), format: format_param(:edit) }
 
     before do
       model
@@ -10,7 +10,7 @@ RSpec.shared_examples 'simple crud for edit' do
 
     context 'without authenticated user' do
       subject!(:req) do
-        get :edit, params: with_route_params(record_param(:edit, model)), format: request_format(:edit)
+        get :edit, params: with_route_params(record_param(:edit, model)), format: format_param(:edit)
       end
 
       include_examples 'unauthorized when not logged in' if check_authenticate(:edit)

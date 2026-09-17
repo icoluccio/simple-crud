@@ -51,7 +51,12 @@ module SimpleCrud
         unauthenticated_status: :unauthorized,
         assert_html_template: true,
         policy_class: ->(klass) { "#{klass}Policy".constantize },
-        serializer_class: ->(model) { "#{model.class}_serializer".classify.constantize },
+        serializer_class: lambda { |model|
+          klass = model.class
+          next "#{klass}Serializer".constantize if Kernel.const_defined?("#{klass}Serializer")
+
+          "#{klass}Blueprint".constantize
+        },
         created_record_check: nil
       }.freeze
 

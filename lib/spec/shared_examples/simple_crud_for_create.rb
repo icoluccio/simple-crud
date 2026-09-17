@@ -4,7 +4,7 @@ RSpec.shared_examples 'simple crud for create' do
   describe 'POST #create' do
     context 'without authenticated user' do
       subject!(:req) do
-        post :create, params: with_route_params(body_params(params_for(model_class))), format: request_format(:create)
+        post :create, params: with_route_params(body_params(params_for(model_class))), format: format_param(:create)
       end
 
       include_examples 'unauthorized when not logged in' if check_authenticate(:create)
@@ -16,7 +16,7 @@ RSpec.shared_examples 'simple crud for create' do
 
         before do
           make_policies_fail(:create)
-          post :create, params: with_route_params(body_params(model_params)), format: request_format(:create)
+          post :create, params: with_route_params(body_params(model_params)), format: format_param(:create)
         end
 
         it 'fails with forbidden' do
@@ -30,7 +30,7 @@ RSpec.shared_examples 'simple crud for create' do
       let(:create_params) { model_params.merge(owner_params) }
 
       before do
-        post :create, params: with_route_params(body_params(create_params)), format: request_format(:create)
+        post :create, params: with_route_params(body_params(create_params)), format: format_param(:create)
       end
 
       if check_html(:create)
@@ -38,8 +38,8 @@ RSpec.shared_examples 'simple crud for create' do
           expect(response).to have_http_status(:found)
         end
       else
-        it 'response with 201 status code' do
-          expect(response).to have_http_status(:created)
+        it 'response with the configured status code' do
+          expect(response).to have_http_status(check_status(:create) || :created)
         end
 
         it 'creates an article with valid attributes' do
@@ -58,7 +58,7 @@ RSpec.shared_examples 'simple crud for create' do
         include_context 'with authenticated user' if check_authenticate(:create)
 
         before do
-          post :create, params: with_route_params(body_params(owner_params)), format: request_format(:create)
+          post :create, params: with_route_params(body_params(owner_params)), format: format_param(:create)
         end
 
         unless check_block(:create)

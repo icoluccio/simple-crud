@@ -1,5 +1,27 @@
 ## Change log
 
+### V0.6.0
+
+Serializer support:
+* Blueprinter: `serializer:` now accepts a [Blueprinter](https://github.com/blueprinter/blueprinter) blueprint on every action, which simple_crud renders with `render_as_hash(record, options)`, as well as an ActiveModelSerializers serializer. The shared examples' default `serializer_class` uses `"#{Model}Blueprint"` when no `"#{Model}Serializer"` constant exists, and `have_been_serialized_with` reads Blueprinter fields.
+* `serializer_options:` on every action: a lambda that runs through `instance_exec`. simple_crud forwards its result to the serializer (`render_as_hash(record, options)` for Blueprinter, `new(record, options)` for AMS). Arity 0 runs with no arguments; arity ≥ 1 gets the record. On `:index` it runs once with no record, so arity-1 lambdas get `nil`. Paginated Blueprinter indexes need wor-paginate ≥ 0.5.
+
+New options:
+* `status:` on `:create`/`:update`/`:destroy` overrides the success status (`:created`/`:ok`/`:ok` by default). `status: :no_content` returns an empty body.
+* `after_persist:` on `:create`/`:update`/`:destroy`: a `(record, saved)` lambda that runs after the write and before rendering. Use it for side effects like cache invalidation. It still runs when you pass a render block.
+
+Behavior changes:
+* `create`/`update` responses now honor `serializer:`. Before, they returned the raw record. AMS apps that never passed `serializer:` see no change.
+* Cached `:show` now honors `serializer:`. Before, it returned `record.as_json`.
+* Unpaginated `:index` now serializes through the same path as the other actions, so Blueprinter works there. Before, it passed `each_serializer` to `render`.
+
+Fixes:
+* `finder:` lambdas now run through `instance_exec` on the controller, so `current_user` and other controller methods are available, matching the README.
+* `:index` resolves a private `current_user` method.
+* Shared examples no longer inject `params[:format]`, which collided with model attributes named `format`.
+* Shared-example `owner_foreign_key` honors custom `foreign_key:` declarations.
+* The base `index` example compares ids with `match_array`; create/update/destroy examples honor a custom `status:`.
+
 ### V0.5.0
 
 New options:

@@ -13,7 +13,7 @@ RSpec.shared_examples 'simple crud for index with scope' do
       make_policies_succeed(:index) if check_authorize(:index)
       my_models
       other_models
-      get :index, params: with_route_params(request_params), format: request_format(:index)
+      get :index, params: with_route_params(request_params), format: format_param(:index)
     end
 
     if check_html(:index)

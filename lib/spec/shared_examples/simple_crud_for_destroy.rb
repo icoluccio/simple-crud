@@ -5,7 +5,7 @@ RSpec.shared_examples 'simple crud for destroy' do
     context 'without authenticated user' do
       subject!(:req) do
         delete :destroy, params: with_route_params(record_param(:destroy, nil, not_found: true)),
-                         format: request_format(:destroy)
+                         format: format_param(:destroy)
       end
 
       include_examples 'unauthorized when not logged in' if check_authenticate(:destroy)
@@ -17,7 +17,7 @@ RSpec.shared_examples 'simple crud for destroy' do
 
         before do
           make_policies_fail(:destroy)
-          delete :destroy, params: with_route_params(record_param(:destroy, model)), format: request_format(:destroy)
+          delete :destroy, params: with_route_params(record_param(:destroy, model)), format: format_param(:destroy)
         end
 
         it 'fails with forbidden' do
@@ -31,7 +31,7 @@ RSpec.shared_examples 'simple crud for destroy' do
 
       before do
         model
-        delete :destroy, params: with_route_params(record_param(:destroy, model)), format: request_format(:destroy)
+        delete :destroy, params: with_route_params(record_param(:destroy, model)), format: format_param(:destroy)
       end
 
       if check_html(:destroy)
@@ -40,8 +40,8 @@ RSpec.shared_examples 'simple crud for destroy' do
           expect(model_class_object.exists?(model.id)).to be false
         end
       else
-        it 'response with 200 status code' do
-          expect(response).to have_http_status(:ok)
+        it 'response with the configured status code' do
+          expect(response).to have_http_status(check_status(:destroy) || :ok)
         end
       end
     end
@@ -53,7 +53,7 @@ RSpec.shared_examples 'simple crud for destroy' do
         model
         allow(model).to receive(:destroy).and_return(false)
         allow_any_instance_of(SimpleCrud::DestroyContext).to receive(:find_record).and_return(model)
-        delete :destroy, params: with_route_params(record_param(:destroy, model)), format: request_format(:destroy)
+        delete :destroy, params: with_route_params(record_param(:destroy, model)), format: format_param(:destroy)
       end
 
       it 'keeps the record' do
@@ -77,7 +77,7 @@ RSpec.shared_examples 'simple crud for destroy' do
       before do
         model
         delete :destroy, params: with_route_params(record_param(:destroy, nil, not_found: true)),
-                         format: request_format(:destroy)
+                         format: format_param(:destroy)
       end
 
       it 'responds with not found status' do
@@ -92,7 +92,7 @@ RSpec.shared_examples 'simple crud for destroy' do
         before do
           model
           make_policies_fail(:destroy)
-          delete :destroy, params: with_route_params(record_param(:destroy, model)), format: request_format(:destroy)
+          delete :destroy, params: with_route_params(record_param(:destroy, model)), format: format_param(:destroy)
         end
 
         it 'responds with forbidden status' do

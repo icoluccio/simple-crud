@@ -2,14 +2,14 @@
 
 RSpec.shared_examples 'simple crud for show' do
   describe 'GET #show' do
-    subject(:show_request) { get :show, params: with_route_params(show_params), format: request_format(:show) }
+    subject(:show_request) { get :show, params: with_route_params(show_params), format: format_param(:show) }
 
     before do
       model
     end
 
     context 'without authenticated user' do
-      subject!(:req) { get :show, params: with_route_params(record_param(:show, model)), format: request_format(:show) }
+      subject!(:req) { get :show, params: with_route_params(record_param(:show, model)), format: format_param(:show) }
 
       include_examples 'unauthorized when not logged in' if check_authenticate(:show)
     end

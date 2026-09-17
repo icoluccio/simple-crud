@@ -120,6 +120,14 @@ Rails.application.routes.draw do
     resources :dummy_models, only: :create
   end
 
+  namespace :blueprint do
+    resources :dummy_models
+  end
+
+  namespace :blueprint_unpaginated do
+    resources :dummy_models, only: :index
+  end
+
   namespace :nested_route do
     resources :classrooms, only: [], param: :slug do
       resources :dummy_models, param: :slug, only: %i[show create destroy]

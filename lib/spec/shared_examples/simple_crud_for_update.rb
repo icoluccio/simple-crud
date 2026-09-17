@@ -5,7 +5,7 @@ RSpec.shared_examples 'simple crud for update' do
     context 'without authenticated user' do
       subject!(:req) do
         update_params = body_params(params_for(model_class)).merge(record_param(:update, model))
-        put :update, params: with_route_params(update_params), format: request_format(:update)
+        put :update, params: with_route_params(update_params), format: format_param(:update)
       end
 
       include_examples 'unauthorized when not logged in' if check_authenticate(:update)
@@ -18,7 +18,7 @@ RSpec.shared_examples 'simple crud for update' do
         before do
           make_policies_fail(:update)
           put :update, params: with_route_params(body_params(model_params).merge(record_param(:update, model))),
-                       format: request_format(:update)
+                       format: format_param(:update)
         end
 
         it 'fails with forbidden' do
@@ -34,7 +34,7 @@ RSpec.shared_examples 'simple crud for update' do
 
       before do
         model
-        put :update, params: with_route_params(update_params), format: request_format(:update)
+        put :update, params: with_route_params(update_params), format: format_param(:update)
       end
 
       if check_html(:update)
@@ -42,8 +42,8 @@ RSpec.shared_examples 'simple crud for update' do
           expect(response).to have_http_status(:found)
         end
       else
-        it 'response with 200 status code' do
-          expect(response).to have_http_status(:ok)
+        it 'response with the configured status code' do
+          expect(response).to have_http_status(check_status(:update) || :ok)
         end
 
         it 'updates an model' do
@@ -66,7 +66,7 @@ RSpec.shared_examples 'simple crud for update' do
 
       before do
         put :update, params: with_route_params(record_param(:update, nil, not_found: true)),
-                     format: request_format(:update)
+                     format: format_param(:update)
       end
 
       it 'response with 404 status code' do
@@ -86,7 +86,7 @@ RSpec.shared_examples 'simple crud for update' do
           model
           put :update, params: with_route_params(body_params({ required_attribute => nil }.merge(owner_params))
                                                          .merge(record_param(:update, model))),
-                       format: request_format(:update)
+                       format: format_param(:update)
         end
 
         unless check_block(:update)

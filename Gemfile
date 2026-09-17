@@ -17,6 +17,7 @@ group :development, :test do
   gem 'action_policy', '~> 0.7.6', require: false
   gem 'active_model_serializers', '~> 0.10.16'
   gem 'appraisal', '~> 2.5'
+  gem 'blueprinter', '~> 1.3'
   gem 'byebug', '~> 13.0'
   gem 'cancancan', '~> 3.6', require: false
   gem 'database_cleaner-active_record', '~> 2.2', require: 'database_cleaner/active_record'
@@ -24,6 +25,9 @@ group :development, :test do
   gem 'devise-jwt', '~> 0.13'
   gem 'factory_bot_rails', '~> 6.5'
   gem 'faker', '~> 3.8'
+  # json 3 dropped the `quirks_mode` keyword that ActionController::TestCase
+  # (and thus rails-controller-testing) still passes on Rails <= 8.0.
+  gem 'json', '< 3'
   gem 'kaminari', '~> 1.2', require: false
   gem 'overcommit', '~> 0.72'
   gem 'pagy', '~> 43.0', require: false
@@ -39,5 +43,5 @@ group :development, :test do
   # required range differs across supported versions.
   gem 'webmock', '~> 3.26'
   gem 'will_paginate', '~> 4.0', require: false
-  gem 'wor-paginate', '~> 0.4'
+  gem 'wor-paginate', '~> 0.5'
 end

@@ -21,7 +21,9 @@ module SimpleCrud
       record = find_record
       maybe_authorize(record)
       controller.instance_variable_set(:@record, record)
-      block ? controller.instance_exec(record, &block) : record.as_json
+      return controller.instance_exec(record, &block) if block
+
+      SimpleCrud::Serializer.render(parameters[:serializer], record, serializer_options(record))
     end
   end
 end
