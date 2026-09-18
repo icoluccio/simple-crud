@@ -11,7 +11,7 @@ module SimpleCrud
         end
 
         %i[paginate authorize authenticate serializer serializer_options status after_persist html finder
-           scope build raise_on_invalid block authenticate_headers].each do |option|
+           scope build raise_on_invalid block authenticate_headers owned_by parent].each do |option|
           define_method("check_#{option}") { |method| get_option(method, option) }
         end
 

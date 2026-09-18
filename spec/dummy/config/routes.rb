@@ -40,6 +40,14 @@ Rails.application.routes.draw do
     resources :dummy_models, only: :index
   end
 
+  namespace :owned do
+    resources :dummy_models
+  end
+
+  namespace :scoped_symbol do
+    resources :dummy_models, only: :index
+  end
+
   namespace :unpaginated_scoped do
     resources :dummy_models, only: :index
   end
@@ -88,6 +96,10 @@ Rails.application.routes.draw do
     resources :dummy_models, only: :destroy
   end
 
+  namespace :html_notice do
+    resources :dummy_models, only: %i[create update destroy]
+  end
+
   namespace :block_destroy do
     resources :dummy_models, only: :destroy
   end
@@ -132,5 +144,9 @@ Rails.application.routes.draw do
     resources :classrooms, only: [], param: :slug do
       resources :dummy_models, param: :slug, only: %i[show create destroy]
     end
+  end
+
+  namespace :parented do
+    resources :dummy_models
   end
 end

@@ -27,6 +27,8 @@ require_relative '../spec/shared_examples/simple_crud_for_destroy_with_finder'
 require_relative '../spec/shared_examples/simple_crud_not_found_with_finder'
 require_relative '../spec/shared_examples/simple_crud_for_new_with_build'
 require_relative '../spec/shared_examples/simple_crud_for_create_with_build'
+require_relative '../spec/shared_examples/simple_crud_for_owned_resource'
+require_relative '../spec/shared_examples/simple_crud_for_nested_resource'
 require_relative '../spec/shared_examples/authorization_adapter_authorize'
 require_relative '../spec/matchers/have_been_serialized_with'
 

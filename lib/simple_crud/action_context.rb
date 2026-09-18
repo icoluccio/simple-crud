@@ -57,11 +57,25 @@ module SimpleCrud
     end
 
     def find_by_id
-      klass.find(controller.params[:id])
+      finder_scope.find(controller.params[:id])
     end
 
     def build_record
-      parameters[:build] ? controller.instance_exec(&parameters[:build]) : klass.new
+      return controller.instance_exec(&parameters[:build]) if parameters[:build]
+      return relation_source.relation!.build if relation_source.configured?
+
+      klass.new
+    end
+
+    # Falls back to klass when owned_by:/parent: is unset.
+    def finder_scope
+      return klass unless relation_source.configured?
+
+      relation_source.relation!
+    end
+
+    def relation_source
+      @relation_source ||= SimpleCrud::RelationSource.new(controller, klass, parameters)
     end
 
     def permitted_params

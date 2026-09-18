@@ -20,6 +20,21 @@ describe SimpleCrud::ActionContext do
     end
   end
 
+  describe '#build_record' do
+    it 'raises not found when owned_by has no owner to build from' do
+      ctx = described_class.new(double(params: {}), DummyModel, { owned_by: :dummy_models })
+      expect { ctx.send(:build_record) }.to raise_error(ActiveRecord::RecordNotFound, /no owner/)
+    end
+
+    it 'builds through the scoped relation when configured' do
+      relation = double(build: :built)
+      ctrl = double(params: {})
+      ctrl.instance_variable_set(:@owner, double(dummy_models: relation))
+
+      expect(described_class.new(ctrl, DummyModel, { parent: :owner }).send(:build_record)).to eq(:built)
+    end
+  end
+
   describe '#serializer_options' do
     let(:record) { DummyModel.new(name: 'widget') }
 

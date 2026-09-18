@@ -10,5 +10,10 @@ describe SimpleCrud::ShowContext do
       expect { ctx.send(:find_record) }
         .to raise_error(ActiveRecord::RecordNotFound, /must return a single record/)
     end
+
+    it 'raises not found when owned_by has no owner to scope the lookup to' do
+      ctx = described_class.new(double(params: { id: 1 }), DummyModel, { owned_by: :dummy_models, authorize: false })
+      expect { ctx.send(:find_record) }.to raise_error(ActiveRecord::RecordNotFound, /no owner/)
+    end
   end
 end
