@@ -46,20 +46,31 @@ module SimpleCrud
     end
 
     def index_relation
-      if parameters[:scope]
-        call_scope
-      elsif parameters[:authorize]
-        SimpleCrud::Config.authorization_adapter.policy_scope(controller, klass)
-      else
-        klass.all
-      end
+      return call_scope if parameters[:scope]
+      return relation_source.relation || klass.none if relation_source.configured?
+
+      default_index_relation
+    end
+
+    def default_index_relation
+      return SimpleCrud::Config.authorization_adapter.policy_scope(controller, klass) if parameters[:authorize]
+
+      klass.all
     end
 
     def call_scope
-      user_method = SimpleCrud::Config.user_method
-      user = controller.respond_to?(user_method, true) ? controller.send(user_method) : nil
       scope = parameters[:scope]
-      scope.arity == 1 ? scope.call(user) : scope.call(user, controller.params)
+      return klass.send(scope, relation_source.user, controller.params) unless scope.respond_to?(:call)
+
+      controller.instance_exec(*scope_arguments(scope), &scope)
+    end
+
+    def scope_arguments(scope)
+      case scope.arity
+      when 0 then []
+      when 1 then [relation_source.user]
+      else [relation_source.user, controller.params]
+      end
     end
 
     def index_records(relation, opts)

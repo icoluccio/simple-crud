@@ -1,5 +1,20 @@
 ## Change log
 
+### V0.7.0
+
+Serializer support:
+* `serializer:` accepts a plain class exposing a `.render` class method, with no base class or gem dependency. simple_crud calls `serializer.render(record, **options)`, so a `def self.render(record, key: default)` signature works untouched. It checks this after Blueprinter's `render_as_hash` and before the ActiveModelSerializers fallback, leaving existing Blueprinter and AMS apps unaffected.
+
+New options:
+* `owned_by:` (Symbol): names an association on `Config.user_method` (`current_user.posts` for `owned_by: :posts`) and supplies the default `finder:`/`build:`/index `scope:` from it, so an owned resource stops spelling out `finder: ->(params) { current_user.posts.find(params[:id]) }` and `build: -> { current_user.posts.build }` on every action. An explicit `finder:`/`build:`/`scope:` overrides the default for that option alone. On `:index`, `owned_by:` takes precedence over the Pundit `policy_scope`, and an explicit `scope:` overrides both. With no current user, an owned `:index` returns no records and an owned `:show`/`:update`/`:destroy` returns `not_found`.
+* `parent:` names a nested route's parent and derives the same defaults from `parent.public_send(parent_association)`. A Symbol resolves a controller method first, then an `@ivar`, so a conventional `before_action` works unchanged; a `Proc` runs in controller context. `parent_association:` defaults to the controller model's plural (`ExamsController` gives `@category.exams`). An explicit `finder:`/`build:`/`scope:` overrides the default, and a nil parent fails closed (404 on find/build, empty index). `parent:` and `owned_by:` both resolve a relation from an owner, so setting both raises `ArgumentError`.
+
+Behavior changes:
+* `scope:` on `:index` accepts a `Symbol` naming a class method on the model, called as `klass.send(scope, user, params)`. Query composition can live on the model instead of inline in the controller.
+* `scope:` lambdas run with the controller as `self`, so a scope can read `@ivars` and route-parent state. Arity 0 receives no arguments (it previously errored by being passed two), arity 1 the user, anything else the user and params.
+* `simple_crud_for` accepts an Array of actions to declare several at once: `simple_crud_for %i[show create update destroy], owned_by: :tasks, serializer: TaskSerializer`.
+* `notice:`/`alert:` on HTML `:create`/`:update`/`:destroy`: set a flash message on the success redirect (`notice`) or the failure re-render (`alert`).
+
 ### V0.6.0
 
 Serializer support:

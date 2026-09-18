@@ -18,6 +18,8 @@ SimpleCrud
         - [Serializer](#serializer)
         - [HTML](#html)
         - [Finder](#finder)
+        - [Owned by](#owned-by)
+        - [Parent](#parent)
         - [Cache](#cache)
       - [Controller-level defaults](#controller-level-defaults)
       - [Shared examples](#shared-examples)
@@ -94,6 +96,12 @@ simple_crud_for :new
 simple_crud_for :edit
 ```
 
+Declare several actions with the same options at once by passing an Array:
+```ruby
+simple_crud_for %i[show create update destroy], owned_by: :tasks, serializer: TaskSerializer
+simple_crud_for :destroy, status: :no_content # per-action override on top of the batch
+```
+
 Each method supports different options, as in:
 ```
 simple_crud_for :index, paginate: false, authorize: false, serializer: CustomSerializer
@@ -108,11 +116,13 @@ simple_crud_for :index, paginate: false, authorize: false, serializer: CustomSer
 - Status: only valid for `:create`, `:update` and `:destroy`. Overrides the success status (`:created`, `:ok` and `:ok` by default). `status: :no_content` responds with an empty body
 - After_persist: only valid for `:create`, `:update` and `:destroy`. A `Proc`/`lambda` `->(record, saved) { ... }` that runs with the controller as `self`, after the write and before rendering. Use it for side effects like cache invalidation. It still runs when you pass a render block
 - Html: renders the action's ERB template instead of JSON (valid for `:index`, `:show`, `:new`, `:edit`, `:create`, `:update` and `:destroy`). Only meaningful in controllers that render templates
-- Scope: only valid for `:index`. A `Proc`/`lambda` taking `current_user` (plus the controller's `params` if it takes a second argument) that returns the relation to list, overriding the default `policy_scope`. The user is resolved via `SimpleCrud::Config.user_method` (`:current_user` by default; set it to e.g. `:current_admin`)
+- Scope: only valid for `:index`. A `Proc`/`lambda` that runs with the controller as `self` (so `@ivars` and route-parent state are available) and returns the relation to list, overriding the default `policy_scope`. It takes `current_user` (plus the controller's `params` when it takes a second argument); an arity-0 lambda gets no arguments. The user is resolved via `SimpleCrud::Config.user_method` (`:current_user` by default; set it to e.g. `:current_admin`)
 - Finder: only valid for `:show`, `:update`, `:destroy` and `:edit`. A `Proc`/`lambda` (invoked with the controller's params) or a `Symbol` naming a class method on the model, used to look up the record instead of `klass.find(params[:id])`.
 - Build: only valid for `:new` and `:create`. A `Proc`/`lambda` that builds the record (invoked with the controller as `self`, so `current_user`, `params` and any instance variables are available), for building nested or owner-scoped records like `current_user.projects.build`. `:create` then assigns the permitted params to the built record before saving
 - Raise_on_invalid: only valid for `:create` and `:update`. Keeps the strict `create!`/`update!` semantics (raising on invalid input) instead of returning `422` with the validation errors
 - Redirect: only valid for HTML-mode `:create`, `:update` and `:destroy`. A `Proc`/`lambda` (called with the record) or a literal path used as the success redirect target. Defaults to the record (`:create`/`:update`) or the model's collection path (`:destroy`)
+- Notice: only valid for HTML-mode `:create`, `:update` and `:destroy`. A flash message set on the success redirect. No-op when the controller has no `flash`
+- Alert: only valid for HTML-mode `:create`, `:update` and `:destroy`. A `flash.now` message set before re-rendering on failure. No-op when the controller has no `flash`
 
 #### Controller-level defaults
 
@@ -203,12 +213,19 @@ end
 
 ```
 
-When `authorize: true`, the `:index` action paginates the Pundit `policy_scope` of the model (falling back to the full relation when no `Scope` is defined) instead of `klass.all`, so "only my records" scoping works out of the box. Override the scope per action with the `scope:` option, a callable that receives the user resolved via `SimpleCrud::Config.user_method` (`nil` when there is none, and `params` too when it takes a second argument):
+When `authorize: true`, the `:index` action paginates the Pundit `policy_scope` of the model (falling back to the full relation when no `Scope` is defined) instead of `klass.all`, so "only my records" scoping works out of the box. Override the scope per action with `scope:`: a callable that receives the user resolved via `SimpleCrud::Config.user_method` (`nil` when there is none, and `params` too when it takes a second argument), or a `Symbol` naming a class method on the model so query composition lives on the model:
 
 ```ruby
 SimpleCrud.configure { |c| c.user_method = :current_admin } # non-Devise naming conventions
 simple_crud_for :index, scope: ->(user) { Model.visible_to(user) }
 simple_crud_for :index, scope: ->(user, params) { Model.where(status: params[:status]).visible_to(user) }
+simple_crud_for :index, scope: :visible_to # calls Model.visible_to(user, params)
+```
+
+A `scope:` lambda runs with the controller as `self`, so it can reach `@ivars` and route-parent context. Arity 0 receives no arguments, arity 1 the user, anything else the user and params:
+
+```ruby
+simple_crud_for :index, scope: -> { @category.exams.includes(:questions).order(:title) }
 ```
 
 Prefer CanCanCan or Action Policy instead? Both have adapters ready to go:
@@ -272,7 +289,7 @@ simple_crud_defaults authenticate: false, authenticate_headers: true
 ```
 
 #### Serializer
-`serializer:` picks the serializer for JSON responses on every action. Pass either an [ActiveModelSerializers](https://github.com/rails-api/active_model_serializers) serializer class, which simple_crud builds per record with `serializer.new(record, serializer_options)`, or a [Blueprinter](https://github.com/blueprinter/blueprinter) blueprint class, which it renders with `blueprint.render_as_hash(record, serializer_options)`.
+`serializer:` picks the serializer for JSON responses on every action. Pass an [ActiveModelSerializers](https://github.com/rails-api/active_model_serializers) serializer class, which simple_crud builds per record with `serializer.new(record, serializer_options)`; a [Blueprinter](https://github.com/blueprinter/blueprinter) blueprint class, rendered with `blueprint.render_as_hash(record, serializer_options)`; or any plain class of your own that responds to `.render`, called as `serializer.render(record, **serializer_options)`, with no base class or extra gem required.
 
 Without `serializer:`, the response uses the record's `as_json`. The shared examples expect an `:id` attribute. Paginated `:index` with Blueprinter needs wor-paginate ≥ 0.5.
 
@@ -284,6 +301,13 @@ end
 class AuthorBlueprint < Blueprinter::Base
   identifier :id
   fields :email, :first_name, :last_name
+end
+
+# A plain class works too, with no dependency on either gem above:
+class AuthorPlainSerializer
+  def self.render(author, **)
+    { id: author.id, email: author.email, first_name: author.first_name, last_name: author.last_name }
+  end
 end
 
 simple_crud_for :show, serializer: AuthorBlueprint
@@ -306,10 +330,12 @@ simple_crud_for :index, html: true
 simple_crud_for :show, html: true
 simple_crud_for :new, html: true
 simple_crud_for :edit, html: true
-simple_crud_for :create, html: true
-simple_crud_for :update, html: true
-simple_crud_for :destroy, html: true
+simple_crud_for :create, html: true, notice: 'Created!', alert: 'Could not create.'
+simple_crud_for :update, html: true, redirect: ->(record) { record_path(record) }, notice: 'Saved!'
+simple_crud_for :destroy, html: true, notice: 'Removed.'
 ```
+
+`notice:` sets a flash message on the success redirect; `alert:` sets a `flash.now` message before the failure re-render. Both are skipped when the controller has no `flash` (e.g. `ActionController::API`).
 
 Or pass a block that renders explicitly, overriding the auto-render. The block receives the records for `:index`, the record for `:show`/`:new`, or the record plus a saved flag for `:create`/`:update`/`:destroy`. Blocks do not change the `html:` default; pass it explicitly so the shared examples know which request format to use:
 
@@ -356,6 +382,63 @@ simple_crud_for :destroy, finder: ->(params) { current_user.models.find(params[:
 ```
 
 When omitted it defaults to `klass.find(params[:id])`, and `not_found` is still returned whenever the finder finds no record.
+
+#### Owned by
+`owned_by:` covers a resource scoped to the current user's own records. It names an association on `Config.user_method` (`current_user` by default) and derives `finder:`, `build:` and the index `scope:` from it:
+
+```ruby
+class PostsController < ApplicationController
+  simple_crud_defaults owned_by: :posts
+  simple_crud_for :index
+  simple_crud_for :show
+  simple_crud_for :create
+  simple_crud_for :update
+  simple_crud_for :destroy
+end
+```
+
+This is equivalent to writing, on every action:
+
+```ruby
+simple_crud_for :index, scope: ->(user) { user.posts }
+simple_crud_for :show, finder: ->(params) { current_user.posts.find(params[:id]) }
+simple_crud_for :create, build: -> { current_user.posts.build }
+simple_crud_for :update, finder: ->(params) { current_user.posts.find(params[:id]) }
+simple_crud_for :destroy, finder: ->(params) { current_user.posts.find(params[:id]) }
+```
+
+An explicit `finder:`, `build:` or `scope:` on an action overrides the `owned_by:` default for that option alone, so an owned `:show`/`:update`/`:destroy` can use a hand-written `:index` scope that needs extra filtering or eager loading. On `:index`, `owned_by:` takes precedence over the Pundit `policy_scope`; an explicit `scope:` overrides both. With no current user, an owned `:index` returns no records and an owned `:show`/`:update`/`:destroy` returns `not_found`, instead of falling back to the unscoped relation.
+
+Keep the owner's foreign key out of strong params. If `owned_by: :posts` sets the owner through the built association, `params.permit(:user_id)` lets a request override it.
+
+#### Parent
+`parent:` covers a nested route. It derives the same `finder:`, `build:` and index `scope:` from an association on a parent resource instead of on the current user. Both options resolve an association on some owner, so setting them together raises `ArgumentError`.
+
+`parent:` takes a `Symbol` that resolves a controller method first, then an `@ivar`. A `before_action` that sets `@category` works unchanged:
+
+```ruby
+class ExamsController < ApplicationController
+  before_action :set_category
+
+  simple_crud_defaults parent: :category   # reads the category method, else @category
+  simple_crud_for %i[index show new create], serializer: ExamSerializer, html: true
+
+  private
+
+  def set_category = @category = Category.find_by!(slug: params.expect(:category_slug))
+end
+```
+
+The association comes from the controller's model, so `ExamsController` gets `@category.exams`. Pass `parent_association:` when the name differs, or a `Proc` (run in controller context) for a parent that isn't an ivar or method:
+
+```ruby
+simple_crud_for :show, parent: :category, parent_association: :published_exams
+simple_crud_for :show, parent: -> { @listing.interview }
+```
+
+As with `owned_by:`, an explicit `finder:`/`build:`/`scope:` overrides the derived default for that option, and a nil parent fails closed: `:show`/`:update`/`:destroy` return `not_found` and `:index` returns no records.
+
+The same strong-params caveat applies: `:create` builds through the parent association and then assigns the permitted params, so never permit the parent's foreign key (for a `@category.exams` controller, don't permit `:category_id`).
 
 #### Cache
 Pass `cache: { key:, ttl: }` on `:show` or `:index` to skip the DB on cache hits.

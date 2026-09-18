@@ -16,7 +16,22 @@ end
 class InheritingController < BaseWithDefaultsController
 end
 
+class MultiActionModel; end
+
+class MultiActionModelsController
+  extend SimpleCrudController
+end
+
 describe SimpleCrudController do
+  describe '.simple_crud_for' do
+    it 'declares every action when given an array', :aggregate_failures do
+      MultiActionModelsController.simple_crud_for(%i[show create], authorize: false, authenticate: false)
+
+      expect(MultiActionModelsController.method_defined?(:show)).to be true
+      expect(MultiActionModelsController.method_defined?(:create)).to be true
+    end
+  end
+
   describe '.check_policies' do
     it 'returns when a matching policy exists' do
       expect { DummyModelsController.check_policies(authorize: true) }.not_to raise_error

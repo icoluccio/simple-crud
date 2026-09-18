@@ -19,11 +19,22 @@ module SimpleCrud
     end
 
     def render_html_redirect(record, saved, options)
-      if saved
-        controller.redirect_to(redirect_target(record, options[:redirect]))
-      else
-        controller.render(options[:failure_template])
-      end
+      return render_html_failure(options) unless saved
+
+      set_flash(:notice, parameters[:notice])
+      controller.redirect_to(redirect_target(record, options[:redirect]))
+    end
+
+    def render_html_failure(options)
+      set_flash(:alert, parameters[:alert], now: true)
+      controller.render(options[:failure_template])
+    end
+
+    def set_flash(key, message, now: false)
+      return if message.nil? || !controller.respond_to?(:flash)
+
+      target = now ? controller.flash.now : controller.flash
+      target[key] = message
     end
 
     def redirect_target(record, target)

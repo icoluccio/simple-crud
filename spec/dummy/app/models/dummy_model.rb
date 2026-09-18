@@ -8,4 +8,8 @@ class DummyModel < ApplicationRecord
   def self.find_by_slug(params)
     find_by!(slug: params[:slug])
   end
+
+  def self.visible_to(user, _params)
+    where(user: user)
+  end
 end
