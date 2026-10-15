@@ -62,17 +62,19 @@ RSpec.shared_examples 'simple crud for edit' do
       end
     end
 
-    context 'when the model does not exist' do
-      include_context 'with authenticated user'
+    unless singular
+      context 'when the model does not exist' do
+        include_context 'with authenticated user'
 
-      let(:edit_params) { record_param(:edit, nil, not_found: true) }
+        let(:edit_params) { record_param(:edit, nil, not_found: true) }
 
-      before do
-        edit_request
-      end
+        before do
+          edit_request
+        end
 
-      it 'responds with not found status' do
-        expect(response).to have_http_status(:not_found)
+        it 'responds with not found status' do
+          expect(response).to have_http_status(:not_found)
+        end
       end
     end
   end

@@ -15,13 +15,22 @@ RSpec.shared_examples 'simple crud for owned resource' do
       expect(response).to have_http_status(:not_found)
     end
 
-    it 'ignores an attempt to update a record owned by another user', :aggregate_failures do
-      params = with_route_params(record_param(:update, someone_elses_model)).merge(body_params(model_params))
-      patch :update, params: params, format: format_param(:update)
+    context 'when updating a record owned by another user' do
+      before do
+        params = with_route_params(record_param(:update, someone_elses_model)).merge(body_params(model_params))
+        patch :update, params: params, format: format_param(:update)
+      end
 
-      expect(response).to have_http_status(:not_found)
-      expect(someone_elses_model.reload.public_send(required_attribute))
-        .not_to eq(model_params[required_attribute])
+      it 'responds with not found' do
+        expect(response).to have_http_status(:not_found)
+      end
+
+      if required_attribute
+        it 'leaves the record untouched' do
+          expect(someone_elses_model.reload.public_send(required_attribute))
+            .not_to eq(model_params[required_attribute])
+        end
+      end
     end
 
     it 'attributes a created record to the current user regardless of the request', :aggregate_failures do

@@ -1,5 +1,13 @@
 ## Change log
 
+### V0.8.0
+
+Shared examples:
+* New examples: `update with block`, `edit with finder` and `edit with block`.
+* `required_attribute: nil` skips the invalid-attribute cases in `create`, `update` and their block variants, for models with nothing to validate. `update with finder` and `owned resource` skip their `required_attribute` assertions as well.
+* `singular: true` covers singular resources. Requests carry no id, the "does not exist" examples are skipped, and the controller's own finder loads the record.
+* `index with scope` handles scopes that exclude nothing. With `other_scoped_attributes: nil` it asserts every scoped record comes back, and `scoped_order: ->(records) { ... }` asserts their order.
+
 ### V0.7.1
 
 Shared examples:

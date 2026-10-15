@@ -511,11 +511,14 @@ The `create` and `update` examples cover the `422` response with validation erro
 ```ruby
 include_examples 'simple crud for new'                    # the :new action
 include_examples 'simple crud for edit'                   # the :edit action
+include_examples 'simple crud for edit with finder'      # finder on :edit
+include_examples 'simple crud for edit with block'       # render block on :edit
 include_examples 'simple crud for index with block'      # render block
 include_examples 'simple crud for index with scope'      # scope: ->(user) { ... }
 include_examples 'simple crud for show with block'       # render block on :show
 include_examples 'simple crud for new with block'        # render block on :new
 include_examples 'simple crud for create with block'     # render block on :create
+include_examples 'simple crud for update with block'     # render block on :update
 include_examples 'simple crud for destroy with block'    # render block on :destroy
 include_examples 'simple crud for show with finder'      # finder on :show
 include_examples 'simple crud for update with finder'    # finder on :update
@@ -550,7 +553,7 @@ SimpleCrud::RSpec.configure do |config|
   # override model_attributes directly for multi-key or non-user-owned models).
   config.owner_association = :owner
   config.model_attributes = -> { { owner: current_user } }
-  config.required_attribute = :title
+  config.required_attribute = :title # nil skips the invalid-attribute cases
   config.required_error = "Title can't be blank"
 
   # Redirect-based apps: unauthenticated requests get a redirect, not a 401.
@@ -579,6 +582,13 @@ SimpleCrud::RSpec.configure do |config|
   config.scoped_attributes = -> { { project: project } }
   config.other_scoped_attributes = -> { { project: other_project } }
 
+  # A scope that only orders excludes nothing. Set other_scoped_attributes to
+  # nil and the example asserts every scoped record comes back. scoped_order
+  # also asserts the order: it takes the created records and returns them in
+  # the expected order. Both fit per-controller metadata better than global config.
+  config.other_scoped_attributes = nil
+  config.scoped_order = ->(records) { records.sort_by(&:name) }
+
   # Pundit policy and serializer class lookup.
   config.policy_class = ->(klass) { "#{klass}Policy".constantize }
   config.serializer_class = ->(model) { "#{model.class}Serializer".constantize }
@@ -589,7 +599,7 @@ SimpleCrud::RSpec.configure do |config|
 end
 ```
 
-Each setting has a sensible default, so you only override what differs. Callable settings (`current_user`, `authenticate`, `create_record`, `create_records`, `params_for`, `model_attributes`, `scoped_attributes`, `other_scoped_attributes`, `policy_class`, `serializer_class`) run in the example-group context, so they can call `request`, `create`, `current_user`, etc.; `created_record_check` receives the persisted record. The examples are controller-agnostic (they issue requests by action name, not hardcoded paths), so they work for namespaced and nested controllers alike. If you keep `assert_html_template` on (the default), add `gem 'rails-controller-testing'` for the `render_template` matcher.
+Each setting has a sensible default, so you only override what differs. Callable settings (`current_user`, `authenticate`, `create_record`, `create_records`, `params_for`, `model_attributes`, `scoped_attributes`, `other_scoped_attributes`, `policy_class`, `serializer_class`, `scoped_order`) run in the example-group context, so they can call `request`, `create`, `current_user`, etc.; `created_record_check` receives the persisted record. The examples are controller-agnostic (they issue requests by action name, not hardcoded paths), so they work for namespaced and nested controllers alike. If you keep `assert_html_template` on (the default), add `gem 'rails-controller-testing'` for the `render_template` matcher.
 
 #### Per-controller overrides via metadata
 
@@ -607,6 +617,15 @@ end
 ```
 
 Callable settings resolve in the example context, so their lambdas can close over the spec's `let`s; that's how records land in the same project the route params point at.
+
+`singular: true` is a per-controller setting for singular resources (`resource :profile`). Requests carry no id, the "model does not exist" examples are skipped, and the controller's own finder (e.g. `finder: ->(_params) { current_user.profile }`) loads the record:
+
+```ruby
+RSpec.describe ProfilesController, type: :controller, simple_crud: { singular: true } do
+  include_examples 'simple crud for show'
+  include_examples 'simple crud for update'
+end
+```
 
 ## Contributing
 
