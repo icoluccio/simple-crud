@@ -61,24 +61,26 @@ RSpec.shared_examples 'simple crud for update' do
       end
     end
 
-    context 'when updating a model that doesn\'t exist' do
-      include_context 'with authenticated user'
+    unless singular
+      context 'when updating a model that doesn\'t exist' do
+        include_context 'with authenticated user'
 
-      before do
-        put :update, params: with_route_params(record_param(:update, nil, not_found: true)),
-                     format: format_param(:update)
-      end
+        before do
+          put :update, params: with_route_params(record_param(:update, nil, not_found: true)),
+                       format: format_param(:update)
+        end
 
-      it 'response with 404 status code' do
-        expect(response).to have_http_status(:not_found)
-      end
+        it 'response with 404 status code' do
+          expect(response).to have_http_status(:not_found)
+        end
 
-      it 'doesn\'t create an model' do
-        expect(model_class_object.count).to be 0
+        it 'doesn\'t create an model' do
+          expect(model_class_object.count).to be 0
+        end
       end
     end
 
-    unless check_raise_on_invalid(:update)
+    if invalid_case?(:update)
       context 'when updating with invalid attributes' do
         include_context 'with authenticated user' if check_authenticate(:update)
 

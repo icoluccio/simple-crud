@@ -53,7 +53,7 @@ RSpec.shared_examples 'simple crud for create' do
       end
     end
 
-    unless check_raise_on_invalid(:create)
+    if invalid_case?(:create)
       context 'when creating with invalid attributes' do
         include_context 'with authenticated user' if check_authenticate(:create)
 

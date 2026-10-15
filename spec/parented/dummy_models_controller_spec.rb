@@ -19,6 +19,16 @@ describe Parented::DummyModelsController, simple_crud: {
     end
   end
 
+  describe 'new with a build hook and no owner association',
+           simple_crud: { owner_association: nil, route_params: -> { { owner_id: current_user.id } } } do
+    include_examples 'simple crud for new with build'
+  end
+
+  describe 'create with a build hook and no owner association',
+           simple_crud: { owner_association: nil, route_params: -> { { owner_id: current_user.id } } } do
+    include_examples 'simple crud for create with build'
+  end
+
   describe 'POST #create with parent: and owned_by: together' do
     it 'raises, they are the same relation source' do
       expect do

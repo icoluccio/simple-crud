@@ -43,6 +43,8 @@ module SimpleCrud
           owner_association ? attributes.merge(owner_association => other_user) : {}
         },
         required_attribute: :name,
+        singular: false,
+        scoped_order: nil,
         required_error: "Name can't be blank",
         finder_key: :slug,
         params_key: nil,

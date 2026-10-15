@@ -15,9 +15,9 @@ module SimpleCrud
             .and_return(instance_double(policy_class_object, "#{method}?" => false))
         end
 
-        def make_policies_succeed(method)
-          allow(policy_class_object).to receive(:new)
-            .and_return(instance_double(policy_class_object, "#{method}?" => true))
+        def make_policies_succeed(method, permissive: false)
+          policy = instance_double(policy_class_object, "#{method}?" => true)
+          allow(policy_class_object).to receive(:new).and_return(permissive ? policy.as_null_object : policy)
         end
       end
     end

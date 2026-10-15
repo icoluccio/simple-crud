@@ -29,8 +29,11 @@ module SimpleCrud
         end
 
         # The params that identify a record for the given action, using the
-        # configured finder_key when the action has a custom finder.
+        # configured finder_key when the action has a custom finder. A singular
+        # resource has no id, so it identifies nothing.
         def record_param(action, record, not_found: false)
+          return {} if singular
+
           key = check_finder(action) ? finder_key : :id
           value = not_found ? "nonexistent-#{key}" : record.public_send(key)
           { key => value }

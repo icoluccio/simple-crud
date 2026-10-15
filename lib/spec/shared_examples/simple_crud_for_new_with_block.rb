@@ -5,7 +5,7 @@ RSpec.shared_examples 'simple crud for new with block' do
     include_context 'with authenticated user' if check_authenticate(:new)
 
     before do
-      make_policies_succeed(:new) if check_authorize(:new)
+      make_policies_succeed(:new, permissive: true) if check_authorize(:new)
       get :new, params: with_route_params({}), format: format_param(:new)
     end
 

@@ -39,16 +39,18 @@ RSpec.shared_examples 'simple crud for show' do
       end
     end
 
-    describe 'when the model does not exist' do
-      include_context 'with authenticated user'
-      let(:show_params) { record_param(:show, nil, not_found: true) }
+    unless singular
+      describe 'when the model does not exist' do
+        include_context 'with authenticated user'
+        let(:show_params) { record_param(:show, nil, not_found: true) }
 
-      before do
-        show_request
-      end
+        before do
+          show_request
+        end
 
-      it 'responds with not found status' do
-        expect(response).to have_http_status(:not_found)
+        it 'responds with not found status' do
+          expect(response).to have_http_status(:not_found)
+        end
       end
     end
   end

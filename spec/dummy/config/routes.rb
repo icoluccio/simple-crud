@@ -36,6 +36,18 @@ Rails.application.routes.draw do
     resources :dummy_models, only: %i[show edit update destroy], param: :slug
   end
 
+  namespace :block_update do
+    resources :dummy_models, only: :update
+  end
+
+  namespace :singular do
+    resource :dummy_model, only: %i[show edit update destroy]
+  end
+
+  namespace :scoped_order do
+    resources :dummy_models, only: :index
+  end
+
   namespace :scoped do
     resources :dummy_models, only: :index
   end
@@ -64,8 +76,20 @@ Rails.application.routes.draw do
     resources :dummy_models, only: :show
   end
 
+  namespace :block_edit do
+    resources :dummy_models, only: :edit
+  end
+
   namespace :block_show do
     resources :dummy_models, only: :show
+  end
+
+  namespace :block_policy_show do
+    resources :dummy_models, only: :show
+  end
+
+  namespace :block_create_redirect do
+    resources :dummy_models, only: %i[show create]
   end
 
   namespace :html_new do

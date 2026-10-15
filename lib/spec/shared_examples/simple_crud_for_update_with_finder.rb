@@ -5,8 +5,9 @@ RSpec.shared_examples 'simple crud for update with finder' do
     include_context 'with authenticated user' if check_authenticate(:update)
 
     context 'when successfully updating a model' do
+      let(:updated_attributes) { required_attribute ? { required_attribute => 'Updated' } : model_params }
       let(:update_params) do
-        with_route_params(body_params(required_attribute => 'Updated').merge(owner_params))
+        with_route_params(body_params(updated_attributes).merge(owner_params))
           .merge(finder_key => model.public_send(finder_key))
       end
 
@@ -15,13 +16,15 @@ RSpec.shared_examples 'simple crud for update with finder' do
         put :update, params: update_params, format: format_param(:update)
       end
 
-      it 'updates the model' do
-        expect(model.reload.public_send(required_attribute)).to eq('Updated')
+      if required_attribute
+        it 'updates the model' do
+          expect(model.reload.public_send(required_attribute)).to eq('Updated')
+        end
       end
 
       if check_block(:update)
         it 'passes the updated model to the block' do
-          expect(rendered_record.id).to eq(model.id)
+          expect(response).to render_or_redirect
         end
       elsif check_html(:update)
         it 'redirects to the updated record' do

@@ -24,8 +24,17 @@ module SimpleCrud
         end
 
         %i[owner_association required_attribute required_error finder_key params_key invalid_status
-           unauthenticated_status assert_html_template scoped_attributes other_scoped_attributes].each do |name|
+           unauthenticated_status assert_html_template scoped_attributes other_scoped_attributes
+           singular].each do |name|
           define_method(name) { resolve(setting(name)) }
+        end
+
+        def invalid_case?(action)
+          !required_attribute.nil? && !check_raise_on_invalid(action)
+        end
+
+        def scoped_order
+          setting(:scoped_order)
         end
 
         def created_record_check
