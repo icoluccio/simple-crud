@@ -15,6 +15,7 @@ module Parented
 
     simple_crud_defaults parent: :owner, authorize: false
     simple_crud_for :index
+    simple_crud_for :new
     simple_crud_for :show
     simple_crud_for :create
     simple_crud_for :update

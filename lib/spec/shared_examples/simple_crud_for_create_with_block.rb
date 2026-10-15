@@ -11,7 +11,7 @@ RSpec.shared_examples 'simple crud for create with block' do
       end
 
       it 'passes the saved record to the block' do
-        expect(response).to be_successful
+        expect(response).to satisfy('render or redirect') { |response| response.successful? || response.redirect? }
       end
 
       it 'creates the record' do

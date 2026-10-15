@@ -68,6 +68,14 @@ Rails.application.routes.draw do
     resources :dummy_models, only: :show
   end
 
+  namespace :block_policy_show do
+    resources :dummy_models, only: :show
+  end
+
+  namespace :block_create_redirect do
+    resources :dummy_models, only: %i[show create]
+  end
+
   namespace :html_new do
     resources :dummy_models, only: :new
   end

@@ -1,5 +1,12 @@
 ## Change log
 
+### V0.7.1
+
+Shared examples:
+* `create with block` and `destroy with block` accept a redirect or a 2xx render, so a block that redirects on success (the README's HTML example) passes. `edit` and `update with finder` accept the same when they use a block.
+* `new with build` and `create with build` assert ownership by the current user only when an `owner_association` is configured. For `parent:`-built records they check that the hook built the record.
+* `make_policies_succeed` takes `permissive: true`. The `show`, `new` and `edit` "with block" examples use it, so a block can ask the policy other questions (e.g. `update?`) without failing the strict double.
+
 ### V0.7.0
 
 Serializer support:

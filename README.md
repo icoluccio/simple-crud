@@ -524,6 +524,8 @@ include_examples 'simple crud for new with build'        # build: -> { ... } on 
 include_examples 'simple crud for create with build'     # build: -> { ... } on :create
 ```
 
+The `create with block`, `destroy with block`, `edit` and `update with finder` examples accept a 2xx render or a redirect. The `show`, `new` and `edit` block examples let the block ask the policy other questions (e.g. `update?`). `new with build` and `create with build` check ownership by the current user only when you configure an `owner_association`.
+
 It's not needed to specify paginate: true and such, since the shared examples will use the configuration that was originally passed to simple_crud_for
 
 #### Adopting the shared examples

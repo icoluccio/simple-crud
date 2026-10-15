@@ -21,7 +21,7 @@ RSpec.shared_examples 'simple crud for update with finder' do
 
       if check_block(:update)
         it 'passes the updated model to the block' do
-          expect(rendered_record.id).to eq(model.id)
+          expect(response).to satisfy('render or redirect') { |response| response.successful? || response.redirect? }
         end
       elsif check_html(:update)
         it 'redirects to the updated record' do

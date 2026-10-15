@@ -11,7 +11,7 @@ RSpec.shared_examples 'simple crud for destroy with block' do
     end
 
     it 'passes the destroyed record to the block' do
-      expect(response).to be_successful
+      expect(response).to satisfy('render or redirect') { |response| response.successful? || response.redirect? }
     end
 
     it 'destroys the record' do
