@@ -71,17 +71,19 @@ RSpec.shared_examples 'simple crud for destroy' do
       end
     end
 
-    context 'when ID is invalid' do
-      include_context 'with authenticated user' if check_authenticate(:destroy)
+    unless singular
+      context 'when ID is invalid' do
+        include_context 'with authenticated user' if check_authenticate(:destroy)
 
-      before do
-        model
-        delete :destroy, params: with_route_params(record_param(:destroy, nil, not_found: true)),
-                         format: format_param(:destroy)
-      end
+        before do
+          model
+          delete :destroy, params: with_route_params(record_param(:destroy, nil, not_found: true)),
+                           format: format_param(:destroy)
+        end
 
-      it 'responds with not found status' do
-        expect(response).to have_http_status(:not_found)
+        it 'responds with not found status' do
+          expect(response).to have_http_status(:not_found)
+        end
       end
     end
 

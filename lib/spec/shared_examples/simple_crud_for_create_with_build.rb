@@ -8,8 +8,14 @@ RSpec.shared_examples 'simple crud for create with build' do
       post :create, params: with_route_params(body_params(params_for(model_class))), format: format_param(:create)
     end
 
-    it 'creates the record owned by the current user' do
-      expect(model_class_object.last.public_send(owner_association)).to eq(current_user)
+    if owner_association
+      it 'creates the record owned by the current user' do
+        expect(model_class_object.last.public_send(owner_association)).to eq(current_user)
+      end
+    else
+      it 'creates the record through the hook' do
+        expect(model_class_object.count).to eq(1)
+      end
     end
   end
 end

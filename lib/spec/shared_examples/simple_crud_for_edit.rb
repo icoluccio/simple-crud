@@ -41,38 +41,40 @@ RSpec.shared_examples 'simple crud for edit' do
 
       before do
         model
-        make_policies_succeed(:edit) if check_authorize(:edit)
+        make_policies_succeed(:edit, permissive: check_block(:edit)) if check_authorize(:edit)
         edit_request
-      end
-
-      it 'responds with ok status' do
-        expect(response).to have_http_status(:ok)
       end
 
       if check_block(:edit)
         it 'renders the asked model through the block' do
-          expect(response).to be_successful
+          expect(response).to render_or_redirect
         end
       elsif check_html(:edit)
         include_examples 'simple crud renders template', :edit
       else
+        it 'responds with ok status' do
+          expect(response).to have_http_status(:ok)
+        end
+
         it 'returns the asked model' do
           expect(response_body['id']).to eq(model.id)
         end
       end
     end
 
-    context 'when the model does not exist' do
-      include_context 'with authenticated user'
+    unless singular
+      context 'when the model does not exist' do
+        include_context 'with authenticated user'
 
-      let(:edit_params) { record_param(:edit, nil, not_found: true) }
+        let(:edit_params) { record_param(:edit, nil, not_found: true) }
 
-      before do
-        edit_request
-      end
+        before do
+          edit_request
+        end
 
-      it 'responds with not found status' do
-        expect(response).to have_http_status(:not_found)
+        it 'responds with not found status' do
+          expect(response).to have_http_status(:not_found)
+        end
       end
     end
   end

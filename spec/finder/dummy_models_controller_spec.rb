@@ -4,10 +4,16 @@ require 'spec_helper'
 
 describe Finder::DummyModelsController, type: :controller do
   include_examples 'simple crud for edit'
+  include_examples 'simple crud for edit with finder'
   include_examples 'simple crud for show with finder'
   include_examples 'simple crud for update with finder'
   include_examples 'simple crud for destroy with finder'
   include_examples 'simple crud for show'
   include_examples 'simple crud for update'
   include_examples 'simple crud for destroy'
+
+  describe 'without a validated attribute', simple_crud: { required_attribute: nil } do
+    include_examples 'simple crud for update'
+    include_examples 'simple crud for update with finder'
+  end
 end

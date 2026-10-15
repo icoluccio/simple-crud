@@ -11,6 +11,9 @@ require_relative '../spec/shared_examples/simple_crud_for_destroy'
 require_relative '../spec/shared_examples/simple_crud_for_create'
 require_relative '../spec/shared_examples/simple_crud_for_new'
 require_relative '../spec/shared_examples/simple_crud_for_edit'
+require_relative '../spec/shared_examples/simple_crud_for_edit_with_finder'
+require_relative '../spec/shared_examples/simple_crud_for_edit_with_block'
+require_relative '../spec/shared_examples/simple_crud_for_update_with_block'
 require_relative '../spec/shared_examples/unauthorized_when_not_logged_in'
 require_relative '../spec/shared_examples/simple_crud_renders_template'
 require_relative '../spec/shared_examples/simple_crud_without_authenticated_user'
@@ -31,6 +34,7 @@ require_relative '../spec/shared_examples/simple_crud_for_owned_resource'
 require_relative '../spec/shared_examples/simple_crud_for_nested_resource'
 require_relative '../spec/shared_examples/authorization_adapter_authorize'
 require_relative '../spec/matchers/have_been_serialized_with'
+require_relative '../spec/matchers/render_or_redirect'
 
 module SimpleCrud
   # Opt-in wiring for the shared examples: see .install!

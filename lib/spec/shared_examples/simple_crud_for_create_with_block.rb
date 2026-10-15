@@ -11,7 +11,7 @@ RSpec.shared_examples 'simple crud for create with block' do
       end
 
       it 'passes the saved record to the block' do
-        expect(response).to be_successful
+        expect(response).to render_or_redirect
       end
 
       it 'creates the record' do
@@ -19,7 +19,7 @@ RSpec.shared_examples 'simple crud for create with block' do
       end
     end
 
-    unless check_raise_on_invalid(:create)
+    if invalid_case?(:create)
       context 'when creating with invalid attributes' do
         include_context 'with authenticated user' if check_authenticate(:create)
 

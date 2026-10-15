@@ -1,14 +1,16 @@
 # frozen_string_literal: true
 
 RSpec.shared_examples 'simple crud not found with finder' do |http_method, action|
-  context 'when the model does not exist' do
-    before do
-      send(http_method, action, params: with_route_params(finder_key => "nonexistent-#{finder_key}"),
-                                format: format_param(action))
-    end
+  unless singular
+    context 'when the model does not exist' do
+      before do
+        send(http_method, action, params: with_route_params(finder_key => "nonexistent-#{finder_key}"),
+                                  format: format_param(action))
+      end
 
-    it 'responds with not found status' do
-      expect(response).to have_http_status(:not_found)
+      it 'responds with not found status' do
+        expect(response).to have_http_status(:not_found)
+      end
     end
   end
 end

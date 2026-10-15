@@ -8,11 +8,17 @@ RSpec.shared_examples 'simple crud for new with build' do
       get :new, params: with_route_params({}), format: format_param(:new)
     end
 
-    it 'builds the record owned by the current user', :aggregate_failures do
-      if check_html(:new) || check_block(:new)
-        expect(rendered_record.public_send(owner_foreign_key)).to eq(current_user.id)
-      else
-        expect(response_body[owner_foreign_key.to_s]).to eq(current_user.id)
+    if owner_association
+      it 'builds the record owned by the current user', :aggregate_failures do
+        if check_html(:new) || check_block(:new)
+          expect(rendered_record.public_send(owner_foreign_key)).to eq(current_user.id)
+        else
+          expect(response_body[owner_foreign_key.to_s]).to eq(current_user.id)
+        end
+      end
+    else
+      it 'builds the record through the hook' do
+        expect(response).to be_successful
       end
     end
   end

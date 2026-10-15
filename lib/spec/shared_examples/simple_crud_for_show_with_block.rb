@@ -7,7 +7,7 @@ RSpec.shared_examples 'simple crud for show with block' do
     let!(:record) { model }
 
     before do
-      make_policies_succeed(:show) if check_authorize(:show)
+      make_policies_succeed(:show, permissive: true) if check_authorize(:show)
       get :show, params: with_route_params(record_param(:show, record)), format: format_param(:show)
     end
 
